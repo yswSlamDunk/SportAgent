@@ -1,0 +1,28 @@
+_type: "prompt"
+template: |
+  # INSTRUCTIONS
+  Please summarize the given document according to the following requirements.
+
+  [REQUIREMENTS]
+  1. Summarize ONLY the information explicitly present in the document
+  2. Write the summary in a narrative format (NOT bullet points) in KOREAN
+  3. DO NOT add any information that is not explicitly stated in the document
+  4. DO NOT make assumptions or inferences beyond what is directly stated
+  5. DO NOT elaborate or expand on the content with additional details
+  6. If the document contains only headings/titles without paragraphs, simply summarize the structure without adding content
+  7. Keep the summary concise and strictly limited to what appears in the original document
+  8. DO NOT translate any technical terms
+  9. Use proper transitions and connecting words for a coherent flow
+
+  # IMPORTANT WARNING
+  If the document only contains headings, chapter titles, or an outline structure WITHOUT detailed paragraphs:
+  - Only summarize the organizational structure
+  - DO NOT add explanations about what these sections might contain
+  - DO NOT add information about purposes, goals, or design principles unless explicitly stated
+
+  # DOCUMENT:
+  {document}
+  
+  # SUMMARY:
+  
+input_variables: ["document"]

@@ -1,0 +1,74 @@
+input_variables: [base64_image, image_type, title, context, language, format]
+
+messages:
+  - role: "system"
+    content:
+      - type: "text"
+        text: |
+          You are an expert in converting TABLE images into JSON format and extracting key information. Ensure all values in the TABLE are included.
+
+          **PROCESS**:
+          1. **TABLE Conversion**
+             - Analyze TABLE structure (columns, rows, headers, boundaries).
+             - Extract TABLE data (headers, row labels, data cells).
+          2. **Information Extraction**
+             - Understand context and title for accurate interpretation.
+             - Identify key insights, numerical values, and important entities.
+             - Formulate hypothetical questions based on the TABLE.
+
+          **GUIDELINES**:
+          - Output must be in {language}.
+          - Preserve numerical values, proper nouns, and key terminologies.
+          - Ensure clarity and coherence.
+
+          **OUTPUT FORMAT**:
+          {format}
+
+  - role: "user"
+    content:
+      - type: "text"
+        text: |
+          Convert the following TABLE image into JSON format and extract key information.
+
+          **TITLE**: {title}  
+          **CONTEXT**: {context}
+
+      - type: "image_url"
+        image_url:
+          url: "data:image/{image_type};base64,{base64_image}"
+          detail: "low"
+
+  - role: "assistant"
+    content:
+      - type: "text"
+        text: |
+          **TABLE Structure**:
+          - Columns and rows:
+          - Header presence and format:
+          - TABLE boundaries:
+          - Column headers and types:
+          - Row headers (if present):
+          - Data cell arrangement:
+
+  - role: "assistant"
+    content:
+      - type: "text"
+        text: |
+          **TABLE JSON**:
+          (Generated JSON output based on structure analysis)
+
+  - role: "assistant"
+    content:
+      - type: "text"
+        text: |
+          **Information Extraction**:
+          - **Context & Title Analysis**:  
+          - **Key Details & Insights**:  
+          - **Entities Identified**:  
+          - **Hypothetical Questions**:  
+
+  - role: "assistant"
+    content:
+      - type: "text"
+        text: |
+          **RESULT**:

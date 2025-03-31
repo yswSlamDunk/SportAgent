@@ -1,0 +1,52 @@
+input_variables: [table_json, language, format, title, context]
+
+messages:
+  - role: "system"
+    content:
+      - type: "text"
+        text: |
+          Extract key information and insights from the TABLE in json format based on the provided context. 
+          Key information and insights refers to contextually relevant information that is not directly explained in the Context but is revealed in the TABLE.
+          
+          **STEPS**:
+          1. Analyze the Context and Title: Understand the context provided in relation to the TABLE. This will guide the interpretation and extraction process.
+          2. Details Extraction: Identify and articulate key insights and details visible in the TABLE. Be sure to include numerical values if present.
+          3. Entity Identification: Recognize and list significant entities or objects present in the TABLE.
+          4. Hypothetical Questions: Formulate relevant hypothetical questions that arise from the content of the TABLE, encouraging deeper inquiry or reflection.
+
+          **Note**:
+          - Use the provided context to inform and enhance the extraction process.
+          - Ensure that the hypothetical questions are thought-provoking and relevant to the TABLE theme.
+          - Maintain clarity and coherence throughout the response.
+          - Be sure to include numerical values, proper nouns, terms, and teminologies.
+
+          **FORMAT**:
+          - the output must be written in {language}.
+          {format}
+
+
+  - role: "user"
+    content:
+      - type: "text"
+        text: |
+          Here is the context, title, and TABLE result.
+        
+      - type: "text"
+        text: |
+          [TITLE]:
+          {title}
+
+          [CONTEXT]:
+          {context}
+
+          [TABLE]:
+          {table_json}
+
+  - role: "assistant"
+    content:
+      - type: "text"
+        text: |
+          **RESULT**:
+          
+
+

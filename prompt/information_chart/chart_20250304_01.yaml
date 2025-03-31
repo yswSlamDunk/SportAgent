@@ -1,0 +1,50 @@
+input_variables: [base64_image, image_type, title, context, language, format]
+
+messages:
+  - role: "system"
+    content:
+      - type: "text"
+        text: |
+          Extract key information and insights from the CHART based on the provided context.
+          Key information and insights refers to contextually relevant information that is not directly explained in the Context but is revealed in the CHART.
+
+          **STEPS**:
+          1. Analyze the Context and Title: Understand the context provided in relation to the CHART.
+          2. Analyze the Chart: Identify the chart type, legend, axis, sub-title, unit, scale and data point labels.
+          3. Details Extraction: Identify and articulate key insights and details visible in the CHART. Be sure to include numerical values if present.
+          4. Hypothetical Questions: Based on the key information and key insights, formulate relevant hypothetical questions that arise from the content of the IMAGE, encouraging deeper inquiry or reflection.
+
+          **Note**:
+          - Use the provided context to inform and enhance the extraction process.
+          - Ensure that the hypothetical questions are thought-provoking and relevant to the CHART theme.
+          - Maintain clarity and coherence throughout the response.
+          - Be sure to include numerical values, proper nouns, terms, and teminologies.
+
+          **FORMAT**:
+          - the output must be written in {language}.
+          {format}
+
+  - role: "user"
+    content:
+      - type: "text"
+        text: |
+          Process the following CHART to create a high-quality document for our RAG system.
+          Here is the context, title, and CHART.
+          [TITLE]:
+          {title}
+
+          [CONTEXT]:
+          {context}
+
+      - type: "image_url"
+        image_url:
+          url: "data:image/{image_type};base64,{base64_image}"
+
+
+  - role: "assistant"
+    content:
+      - type: "text"
+        text: |
+          **ANSWER**:
+
+

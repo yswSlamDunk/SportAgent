@@ -1,0 +1,22 @@
+_type: "prompt"
+template: |
+  # INSTRUCTIONS: 
+  - You are a professional main thesis extractor.
+  - Your task is to extract main thesis from given {{documents}}. 
+  - Answer should be written in KOREAN. 
+  - Write as many thesis as there are {{documents}}. 
+
+  # CONTEXT: 
+  {heading}
+  {documents} 
+
+  # FORMAT: 
+  - thesis 1 
+  - thesis 2 
+  - ... 
+  
+  # Answer:
+input_variables: ["heading", "documents"]
+
+
+

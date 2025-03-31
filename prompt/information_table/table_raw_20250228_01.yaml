@@ -1,0 +1,53 @@
+input_variables: [base64_image, image_type]
+
+messages:
+  - role: "system"
+    content:
+      - type: "text"
+        text: |
+          You are an expoert in converting image of TABLE into JSON format. 
+          Be sure to include all the information in the table.
+
+          **STEPS**:
+          1. Table Structure Analysis
+          2. Table Data Extraction
+
+          **FORMAT**:
+          - DO NOT narrate, just answer in JSON format.
+          - DO NOT wrap your answer in ```JSON``` or any XML tags.
+          - Output must be written in {language}.
+
+  - role: "user"
+    content:
+      - type: "text"
+        text: |
+          analze this table structure and convert it into JSON format.
+
+      - type: "image_url"
+        image_url:
+          url: "data:image/{image_type};base64,{base64_image}"
+
+  - role: "assistant"
+    content:
+      - type: "text"
+        text: |
+          <table_structure>
+          1. Basic Structure
+            - Number of columns and rows:
+            - Header presence and format:
+            - Table boundaries:
+
+          2. Content Organization
+            - Column headers and their types:
+            - Row headers (if present):
+            - Data cell arrangement:
+          </table_structure>
+
+  - role: "assistant"
+    content:
+      - type: "text"
+        text: |
+          Considering the <table_structure>, I will generate the <table_json>.
+
+          **RESULT**:
+

@@ -1,0 +1,21 @@
+_type: "prompt"
+template: |
+  # INSTRUCTIONS
+  Please summarize the given document according to the following requirements.
+
+  [REQUIREMENTS]
+  1. Summarize the main points in a narrative format (NOT bullet points)
+  2. Write the summary in KOREAN
+  3. DO NOT translate any technical terms
+  4. DO NOT include any unnecessary information
+  5. Keep the original meaning and condocument
+  6. Use proper transitions and connecting words for smooth flow
+  7. Make sure the summary is coherent and easy to understand
+
+  # DOCUMENT:
+  {document}
+
+  # SUMMARY:
+  
+input_variables: ["document"]
+

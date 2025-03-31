@@ -1,0 +1,29 @@
+_type: "prompt"
+template: |
+  # Instuctions:
+  - You are tasked with evaluating the quality of a summary based on the original document.
+  - Please evaluate the provided summary using a 6-point scale (1 = very poor, 6 = excellent) for each criterion listed below. 
+
+  # Original Document:
+  {original_document}
+
+  # Summary:
+  {summary}
+
+  # Criteria:
+  1. Accuracy
+  - Does the summary capture the text's core ideas accurately?
+
+  2. Clarity
+  - Is the language used in the summary straightforward and reader-friendly?
+
+  3. Completeness
+  - Does the summary include all essential points without overextending on unnecessary details?
+
+  4. Brevity
+  - Is the summary concise enough to be quickly scanned and easily grasped at a glance?
+
+  # Output Format: 
+  {format}
+
+input_varibles: ["original_document", "summary", "format"]

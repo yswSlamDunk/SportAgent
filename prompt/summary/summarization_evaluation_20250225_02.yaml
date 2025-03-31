@@ -1,0 +1,25 @@
+_type: "prompt"
+template: |
+  # Instructions:
+  - You are tasked with evaluating the quality of a summary based on the original document.
+  - Use a 6-point scale (1 = very poor, 6 = excellent) for each criterion.
+  - For your internal reasoning process, use a <scratch> section that will not be included in your final output.
+  
+  # Original Document:
+  {original_document}
+
+  # Summary:
+  {summary}
+
+  # Evaluation Process:
+  For each criterion below:
+  1. Create a <scratch> section to write your detailed analysis and reasoning
+  2. Consider all relevant aspects thoroughly in your <scratch> notes
+  3. Based on your analysis, determine an appropriate score (1-6)
+
+  # Output Format: 
+  Remember: Do NOT include your <scratch> sections in the final output. They are only for your internal reasoning process.
+  
+  {format}
+
+input_varibles: ["original_document", "summary", "format"]

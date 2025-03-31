@@ -1,0 +1,67 @@
+input_variables: [table_json, language, format, title, context]
+
+messages:
+  - role: "system"
+    content:
+      - type: "text"
+        text: |
+          Extract key information and insights from the TABLE in json format based on the provided context. 
+          Key information and insights refers to contextually relevant information that is not directly explained in the Context but is revealed in the TABLE.
+
+          **STEPS**:
+          1. Analyze the Context and Title: First determine if the TABLE is:
+            - TYPE A: A template/framework/guide (training plans, instructional formats, etc.)
+            - TYPE B: A data presentation (statistics, research results, comparative data, etc.)
+
+          2. Details Extraction: Based on your determination of TABLE type, extract information accordingly:
+            
+            FOR TYPE A (Templates/Frameworks):
+            - Focus on the structural format and its pedagogical significance
+            - Analyze how the TABLE's organization itself provides guidance
+            - Highlight customizable elements and implementation patterns
+            - Explain the purpose and relationship between different components
+            - Note how the format reflects standard practices in the domain
+
+            FOR TYPE B (Data Presentations):
+            - Focus on key data points, trends, patterns, and statistical insights
+            - Identify relationships between variables and notable outliers
+            - Extract comparative findings and significant numerical values
+            - Analyze distribution patterns and central tendencies
+            - Note any surprising or counter-intuitive findings
+
+          3. Hypothetical Questions: Using your details extraction as evidence, formulate questions that encourage deeper inquiry and reflection.
+
+          **Note**:
+          - Your determination of TABLE type should guide your content approach while maintaining the same output structure
+          - Include appropriate domain-specific terminology throughout your analysis
+          - Be sure to consider both explicit and implicit information in the TABLE
+          - Maintain clarity and coherence throughout the response
+
+          **FORMAT**:
+          - the output must be written in {language}.
+          {format}
+
+
+  - role: "user"
+    content:
+      - type: "text"
+        text: |
+          Process the following TABLE to create a high-quality document for our RAG system.
+          Here is the context, title, and TABLE in JSON format.
+        
+      - type: "text"
+        text: |
+          [TITLE]:
+          {title}
+
+          [CONTEXT]:
+          {context}
+
+          [TABLE]:
+          {table_json}
+
+  - role: "assistant"
+    content:
+      - type: "text"
+        text: |
+          **RESULT**:

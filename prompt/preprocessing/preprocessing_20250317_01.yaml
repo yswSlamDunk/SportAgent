@@ -1,0 +1,21 @@
+_type: "prompt"
+template: |
+  # SENTENCES: 
+  {sentences}
+
+  # REQUEST
+  1. Remove only unnecessary line breaks (\n) that occur in the middle of sentences
+  2. Keep line breaks that serve as natural paragraph separators
+  3. Remove unnecessary spaces
+  4. Do not modify any words or punctuation
+  5. Do not add or remove any content
+  6. Do not restructure or rephrase the sentence
+  7. Maintain the exact same meaning and wording
+
+  # EXAMPLES
+  - Remove: "안전하고 효과적인 훈\n련 프로그램" -> "안전하고 효과적인 훈련 프로그램"
+  - Keep: "첫 번째 단락입니다.\n\n두 번째 단락입니다."
+
+  # RESULT:
+
+
