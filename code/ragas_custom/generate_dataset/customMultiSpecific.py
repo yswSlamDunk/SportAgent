@@ -22,12 +22,14 @@ class MultiRelationMultiHopScenario(MultiHopQuerySynthesizer):
     relation_types: List[str] = field(default_factory=list)
     theme_persona_matching_prompt: PydanticPrompt = ThemesPersonasMatchingPrompt()
     relation_list: List[str] = field(default_factory=list)
+    heading: str = 'heading1'
 
     def __post_init__(
         self,
         name: str = None,
         relation_types: List[str] = None,
         relation_list: List[str] = None,
+        heading: str = None,
     ):
         if name is not None:
             self.name = name
@@ -35,6 +37,9 @@ class MultiRelationMultiHopScenario(MultiHopQuerySynthesizer):
             self.relation_types = relation_types
         if relation_list is not None:
             self.relation_list = relation_list
+        if heading is not None:
+            self.heading = heading
+
 
     def filter_keywords_by_statistics(
         self,
@@ -57,6 +62,11 @@ class MultiRelationMultiHopScenario(MultiHopQuerySynthesizer):
         # 빈도수 값들의 평균과 표준편차 계산
         values = list(filtered_dict.values())
         mean = sum(values) / len(values)
+
+        # 표준편차가 0인 경우 처리
+        if len(set(values)) == 1:  # 모든 값이 동일한 경우
+            return filtered_dict  # 모든 값을 그대로 반환
+    
         std = (sum((x - mean) ** 2 for x in values) / len(values)) ** 0.5
 
         # z-score 계산 및 하위 percentile_threshold% 제거
@@ -71,16 +81,16 @@ class MultiRelationMultiHopScenario(MultiHopQuerySynthesizer):
         
         return filtered_dict
 
-    def get_node_clusters(self, knowledge_graph: KnowledgeGraph, heading: str) -> List[Tuple]:
+    def get_node_clusters(self, knowledge_graph: KnowledgeGraph) -> List[Tuple]:
         """
         Get node clusters based on relation types and relation list
         """
         node_clusters = knowledge_graph.find_two_nodes_single_rel(
             relationship_condition=lambda rel: (
-                rel.type in [self.relation_types] and 
+                rel.type in self.relation_types and 
                 rel.source.id.hex in [r.split('_')[0] for r in self.relation_list] and
                 rel.target.id.hex in [r.split('_')[1] for r in self.relation_list] and
-                rel.source.properties['document_metadata']['heading'][heading] != rel.target.properties['document_metadata']['heading'][heading]
+                rel.source.properties['document_metadata']['heading'][self.heading] != rel.target.properties['document_metadata']['heading'][self.heading]
             )
         )
 
@@ -113,15 +123,16 @@ class MultiRelationMultiHopScenario(MultiHopQuerySynthesizer):
         knowledge_graph: KnowledgeGraph,
         persona_list: List[Persona],
         callbacks: Callbacks,
-        heading: str = 'heading1'
     ) -> List[MultiHopScenario]:
         # 1. 노드 클러스터 가져오기
         node_clusters = self.get_node_clusters(knowledge_graph)
 
         if len(node_clusters) == 0:
-            raise ValueError(
-                "No clusters found in the knowledge graph. Check relation types and relation list."
-            )
+            print(f"{self.name}: No clusters found in the knowledge graph. Check relation types and relation list.")
+            return []
+            # raise ValueError(
+            #     "No clusters found in the knowledge graph. Check relation types and relation list."
+            # )
         
         # 2. 관계 타입별로 카운트 딕셔너리와 캐시 초기화
         count_dict = {rel_type: {} for rel_type in self.relation_types}
@@ -192,9 +203,11 @@ class MultiRelationMultiHopScenario(MultiHopQuerySynthesizer):
         }
 
         if not valid_personas:
-            raise ValueError(
-                "No valid persona-keyword combinations found. Check if the themes match with relation types."
-            )
+            print(f"{self.name}: No valid persona-keyword combinations found. Check if the themes match with relation types.")
+            return []
+            # raise ValueError(
+            #     "No valid persona-keyword combinations found. Check if the themes match with relation types."
+            # )
         
         # 8. 시나리오 생성
         scenarios = []
@@ -293,12 +306,14 @@ class SingleRelationMultiHopScenario(MultiHopQuerySynthesizer):
     relation_type: str = None
     relation_list: List[str] = field(default_factory=list)
     theme_persona_matching_prompt: PydanticPrompt = ThemesPersonasMatchingPrompt()
+    heading: str = 'heading1'
 
     def __post_init__(
         self,
         name: str = None,
         relation_type: str = None,
         relation_list: List[str] = None,
+        heading: str = None,
     ):
         if name is not None:
             self.name = name
@@ -306,8 +321,10 @@ class SingleRelationMultiHopScenario(MultiHopQuerySynthesizer):
             self.relation_type = relation_type
         if relation_list is not None:
             self.relation_list = relation_list
+        if heading is not None:
+            self.heading = heading
 
-    def get_node_clusters(self, knowledge_graph: KnowledgeGraph, heading: str) -> List[Tuple]:
+    def get_node_clusters(self, knowledge_graph: KnowledgeGraph) -> List[Tuple]:
         """
         Get node clusters based on relation type and relation list
         """
@@ -316,7 +333,7 @@ class SingleRelationMultiHopScenario(MultiHopQuerySynthesizer):
                 rel.type == self.relation_type and 
                 rel.source.id.hex in [r.split('_')[0] for r in self.relation_list] and
                 rel.target.id.hex in [r.split('_')[1] for r in self.relation_list] and
-                rel.source.properties['document_metadata']['heading'][heading] != rel.target.properties['document_metadata']['heading'][heading]
+                rel.source.properties['document_metadata']['heading'][self.heading] != rel.target.properties['document_metadata']['heading'][self.heading]
             )
         )
     
@@ -341,6 +358,11 @@ class SingleRelationMultiHopScenario(MultiHopQuerySynthesizer):
         # 빈도수 값들의 평균과 표준편차 계산
         values = list(filtered_dict.values())
         mean = sum(values) / len(values)
+        # 표준편차가 0인 경우 처리
+        
+        if len(set(values)) == 1:  # 모든 값이 동일한 경우
+            return filtered_dict  # 모든 값을 그대로 반환
+        
         std = (sum((x - mean) ** 2 for x in values) / len(values)) ** 0.5
 
         # z-score 계산 및 하위 percentile_threshold% 제거
@@ -361,13 +383,13 @@ class SingleRelationMultiHopScenario(MultiHopQuerySynthesizer):
         knowledge_graph: KnowledgeGraph,
         persona_list: List[Persona],
         callbacks: Callbacks,
-        heading: str = 'heading1'
     ) -> List[MultiHopScenario]:
         # 1. 노드 클러스터 가져오기
-        node_clusters = self.get_node_clusters(knowledge_graph, heading)
+        node_clusters = self.get_node_clusters(knowledge_graph)
         
         if len(node_clusters) == 0:
-            raise ValueError("No clusters found in the knowledge graph.")
+            print(f"{self.name}: No clusters found in the knowledge graph. Check relation types and relation list.")
+            return []
 
         # 2. 카운트 딕셔너리와 캐시 초기화
         count_dict = {}
@@ -421,7 +443,9 @@ class SingleRelationMultiHopScenario(MultiHopQuerySynthesizer):
                 persona_keywords[persona_name] = matching_keywords
 
         if not persona_keywords:
-            raise ValueError("No valid persona-keyword combinations found.")
+            print(f"{self.name}: No valid persona-keyword combinations found. Check if the themes match with relation types.")
+            return []
+            # raise ValueError("No valid persona-keyword combinations found.")
 
         # 7. 시나리오 생성
         scenarios = []

@@ -10,7 +10,8 @@ def analyze_relationship(
     rel_types: List[str] = None,
     figsize: tuple = (7, 5),
     colors: List[str] = ['#4F81BD', '#C0504D'],
-    show_plot: bool = True
+    show_plot: bool = True,
+    heading: str = 'heading1'
 ) -> Dict[str, Dict[str, int]]:
     """
     지식 그래프의 관계를 분석하고 시각화합니다.
@@ -34,7 +35,7 @@ def analyze_relationship(
     for node in kg.nodes:
         try:
             node_id = node.id.hex
-            sector = node.properties['document_metadata']['heading']['heading1']
+            sector = node.properties['document_metadata']['heading'][heading]
             node_sector[node_id] = sector
         except (AttributeError, KeyError) as e:
             print(f"Warning: Node {node_id} has invalid structure: {e}")
@@ -85,7 +86,7 @@ def analyze_relationship(
                         ha='center', va='bottom', 
                         fontsize=11, fontweight='bold')
 
-            plt.title(f'{rtype} 관계 분포', fontsize=14)
+            plt.title(f'{rtype} 관계 분포({heading})', fontsize=14)
             plt.ylabel('관계 개수')
             plt.tight_layout()
             plt.show()
@@ -98,7 +99,8 @@ def analyze_sector_connection_ratio(
     figsize: Tuple[int, int] = (16, 6),
     color_maps: Optional[Dict[str, str]] = None,
     return_dfs: bool = True,
-    show_plot: bool = True
+    show_plot: bool = True,
+    heading: str = 'heading1'
 ) -> Union[Tuple[pd.DataFrame, ...], None]:
     """
     섹터 간 연결 비율을 분석하고 시각화합니다.
@@ -128,7 +130,7 @@ def analyze_sector_connection_ratio(
     try:
         for node in kg.nodes:
             node_id = node.id.hex
-            sector = node.properties['document_metadata']['heading']['heading1']
+            sector = node.properties['document_metadata']['heading'][heading]
             node_sector[node_id] = sector
             sector_nodes[sector].add(node_id)
     except (AttributeError, KeyError) as e:
@@ -199,7 +201,7 @@ def analyze_sector_connection_ratio(
             axes[idx].set_xticklabels(sectors, rotation=45, ha='right')
             axes[idx].set_yticks(range(n))
             axes[idx].set_yticklabels(sectors)
-            axes[idx].set_title(f'section 간 연결 비율(%) - {rtype}')
+            axes[idx].set_title(f'{heading} 섹션 간 연결 비율(%) - {rtype}')
 
             # 값 표시
             for i in range(n):

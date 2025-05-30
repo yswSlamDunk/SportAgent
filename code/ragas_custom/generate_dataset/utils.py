@@ -1,7 +1,8 @@
-import re
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-import re 
+import re
+import pandas as pd
 
 def classify_language(text):
     english_count = len(re.findall(r'[a-zA-Z]', text))
@@ -44,12 +45,12 @@ def translate(testset_df):
     return testset_df.iloc[:, :4]
 
 
-def make_chunk_dict(knowledge_graph):
+def make_chunk_dict(knowledge_graph, heading: str = 'heading1'):
     chunk_dict = {}
     chunk_id_dict = {}
     chunk_summary_embedding = {}
     for node in knowledge_graph.nodes:
-        section = node.properties['document_metadata']['heading']['heading1']
+        section = node.properties['document_metadata']['heading'][heading]
         chunk_id = node.properties['document_metadata']['chunk_id']
         summary_embedding = node.properties['summary_embedding']
         page_content = node.properties['page_content']
@@ -66,9 +67,8 @@ def regular_expression(reference_contexts, chunk_dict):
         return [chunk_dict[re.sub(r"<\d+-hop>\n\n", "", text)] for text in reference_contexts] 
     
     
-def analyze_synthetic_data(kg, testset_df):
-    chunk_dict, chunk_id_dict, chunk_summary_embedding = make_chunk_dict(kg)
+def analyze_synthetic_data(kg, testset_df, heading:str = 'heading1'):
+    chunk_dict, chunk_id_dict, chunk_summary_embedding = make_chunk_dict(kg, heading)
     testset_df['reference_contexts_section'] = testset_df['reference_contexts'].apply(lambda x : regular_expression(x, chunk_dict))
-    testset_df = testset_df.drop(columns = ['language_user_input', 'language_reference'])
 
     return testset_df
