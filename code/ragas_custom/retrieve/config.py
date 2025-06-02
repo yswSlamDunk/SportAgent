@@ -74,26 +74,27 @@ def generate_hybrid_configs(k_values, hybrid_alphas, analyzers, mmr_params, thre
     
     return configs
 
-def generate_retriever_configs():
-    """모든 Retriever 설정 조합 생성"""
-    # 기본 파라미터
-    k_values = [5, 10, 15]
-    analyzers = ["bm25", "bm25_kiwi", "bm25_kiwi_pos"]
-    hybrid_alphas = [20, 40, 60, 80]
-    
+def generate_retriever_configs(
+        k_values=[5, 10, 15],
+        analyzers=["bm25", "bm25_kiwi", "bm25_kiwi_pos"],
+        hybrid_alphas = [20, 40, 60, 80],
+        fetch_k=[1.5, 2, 2.5],
+        lambda_mult=[0.3, 0.5, 0.7],
+        score_threshold=[0.3, 0.5, 0.7, 0.9]
+    ):   
     # Dense Retriever 파라미터
-    mmr_params = {
-        "fetch_k": [1.5, 2, 2.5],
-        "lambda_mult": [0.3, 0.5, 0.7]
+    mrr_params = {
+        "fetch_k": fetch_k,
+        "lambda_mult": lambda_mult
     }
     threshold_params = {
-        "score_threshold": [0.3, 0.5, 0.7, 0.9]
+        "score_threshold": score_threshold
     }
     
     # 각 타입별 설정 생성
     sparse_configs = generate_sparse_configs(k_values, analyzers)
-    dense_configs = generate_dense_configs(k_values, mmr_params, threshold_params)
-    hybrid_configs = generate_hybrid_configs(k_values, hybrid_alphas, analyzers, mmr_params, threshold_params)
+    dense_configs = generate_dense_configs(k_values, mrr_params, threshold_params)
+    hybrid_configs = generate_hybrid_configs(k_values, hybrid_alphas, analyzers, mrr_params, threshold_params)
     
     # 모든 설정 합치기
     return sparse_configs + dense_configs + hybrid_configs

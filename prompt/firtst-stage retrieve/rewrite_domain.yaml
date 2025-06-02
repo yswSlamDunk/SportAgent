@@ -1,0 +1,24 @@
+_type: 'prompt'
+
+input_variables:
+  - query
+
+template: |
+  You are assisting a Retrieval-Augmented Generation (RAG) system that answers questions based on the document"
+
+  The document includes the following sections:
+  1. Construction and Guidance of Weightlifting Training Programs
+  2. Technical Structure and Training Methods of Weightlifting
+  3. Scientific Principles in Weightlifting
+  4. General Understanding of Weightlifting
+  5. Structure and Training Methods of Weightlifting Fitness
+
+  IMPORTANT: Avoid changing the intent of the original query. Your task is to make the query more specific and clear while maintaining its original purpose and information needs.
+
+  Rewrite the user query below to make it clear, specific, and optimized for retrieving relevant content from this document.
+  Focus on maximizing retrieval relevance and reducing ambiguity.
+  The rewritten query must be written in Korean. 
+
+  User Query: {query}
+
+  Rewritten Query:

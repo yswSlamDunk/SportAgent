@@ -1,0 +1,16 @@
+_type: 'prompt'
+
+input_variables:
+  - query
+
+template: |
+  You are an assistant that generates a pseudo-document to help expand a user query for better information retrieval.
+
+  Given the user query below, generate coherent passage (2-3 sentences) that provides relevant background, context, or details related to the query.  
+  The passage should help clarify and expand the query without adding unrelated information.
+
+  The passage must be written in Korean.
+
+  User query: {query}
+
+  Pseudo-document:

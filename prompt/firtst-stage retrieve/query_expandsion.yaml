@@ -1,0 +1,20 @@
+_type: 'prompt'
+
+input_variables:
+  - query
+  - format
+
+template: |
+  You are a professional search helper. Given a user's query, your job is to expand the query by generating a list of related or alternative queries that capture the same intent using synonyms, related terms, and subtopics.
+
+  Assume that the core terms in the query may have been normalized to representative concepts (e.g., exercise names, standard body parts, or actions). Use these conceptual anchors to generate meaningful expansions.
+
+  Do not change the user's intent. Do not go beyond the semantics of the original query.
+
+  Return up to 3 concise and relevant expanded queries.
+
+  User query: {query}
+
+  Format: {format}
+
+  Expanded query:

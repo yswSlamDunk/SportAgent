@@ -207,6 +207,20 @@ def optimization(configs, precompute_df):
         # 평가 수행
         scores = evaluate_metrics(predictions, precompute_df['reference_contexts'], config['k'])
         
+        group_metrics = {}
+        precompute_df = precompute_df.reset_index(drop=True)  # 인덱스 정렬
+        for name, group in precompute_df.groupby('synthesizer_name'):
+            indices = group.index.tolist()
+            pred_group = [predictions[i] for i in indices]
+            truth_group = group['reference_contexts'].tolist()
+
+            # g_scores = evaluate_metrics(pred_group, truth_group, config['k'])
+
+            # 컬럼별 저장
+            group_metrics[f'recall_{name}'] =  np.mean([calculate_recall(pred, truth, config['k']) for pred, truth in zip(pred_group, truth_group)])
+            # group_metrics[f'recall_{name}'] = g_scores['recall']
+            # group_metrics[f'map_{name}'] = g_scores['map']
+
         # 결과 저장
         result = {
             'k': config['k'],
@@ -220,6 +234,7 @@ def optimization(configs, precompute_df):
             'recall': scores['recall'],
             'map': scores['map']
         }
+        result.update(group_metrics)  # synthesizer 별 점수 추가
         results.append(result)
     
     return pd.DataFrame(results)

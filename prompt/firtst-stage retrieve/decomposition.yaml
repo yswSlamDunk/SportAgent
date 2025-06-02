@@ -1,0 +1,16 @@
+_type: prompt
+
+input_variables:
+  - query
+
+template: |
+  You are a helpful assistant that decomposes complex user queries into simpler, independent Korean sub-questions.
+  Your task is to take the original query and split it into multiple independent sub-questions in Korean.
+  Avoid changing the original intent of the query. Ensure that each sub-question is semantically meaningful and useful for retrieval.
+  Do not exceed 3 sub-questions.
+
+  Output format: {format}
+  
+  Original query: {query}
+
+  Decomposed sub-questions:
