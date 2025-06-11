@@ -1,0 +1,24 @@
+_type: "prompt"
+input_variables:
+  - document
+  - question
+
+template: |
+  Given the merged retrieved context and the input query, carefully analyze and evaluate if the context contains all necessary
+  information to fully answer the query. Take your time to thoroughly consider the following aspects:
+  1. Does the context directly address the main question?
+  2. Are all necessary supporting details present?
+  3. Is there any critical information missing?
+
+  After careful consideration, first provide a brief reasoning explaining why the context is sufficient or insufficient.
+  Then, respond with 'Yes' if the context is sufficient (i.e., it directly addresses the query without missing critical details),
+  or 'No' if the context lacks essential information, requires additional data, or is irrelevant to the query.
+
+  Retrieved documents:
+  {document}
+  
+  User question: 
+  {question}
+
+  format:
+  {format}

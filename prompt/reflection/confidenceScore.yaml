@@ -1,0 +1,37 @@
+_type: "prompt"
+input_variables:
+  - document
+  - question
+  - format
+
+template: |
+  Given the merged retrieved context and the input query, carefully analyze and evaluate the degree of sufficiency of the context to answer the query. Take your time to thoroughly consider the following aspects:
+  1. Does the context directly address all parts of the query?
+  2. Are all necessary supporting details present?
+  3. Is there any critical information missing?
+
+  Then follow this process:
+  - **First**, provide a brief reasoning explaining your evaluation. Your reasoning should:
+    - Identify specific parts of the context that support (or fail to support) the answer.
+    - Mention whether any part of the question is unanswered, partially answered, or ambiguous.
+    - Avoid generic or vague phrases. Be concrete and context-specific.
+
+  - **Second**, assign a sufficiency score on a scale from 0 to 1, where:
+    - **1** means the context is fully sufficient: it directly and completely answers the question with all necessary details.
+    - **0** means the context is entirely insufficient: it lacks essential information or is unrelated to the query.
+    - Values **between 0 and 1** represent varying degrees of partial sufficiency. Use intermediate values (e.g., 0.25, 0.3, 0.5, 0.75) when the context covers some, but not all, critical elements.
+
+  Why this works:
+  - **Continuous scale (0–1)**: Enables nuanced evaluation of sufficiency, useful for training or filtering in retrieval-augmented systems.
+  - **Reasoning before scoring**: Forces explicit justification, improving consistency and interpretability.
+  - **Merged context focus**: Ensures the model evaluates the full set of retrieved content holistically, not in isolation.
+
+  ---
+  **Retrieved documents:**  
+  {document}
+  
+  **User question:**  
+  {question}
+
+  format:
+  {format}
