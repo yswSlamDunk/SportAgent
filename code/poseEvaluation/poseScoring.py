@@ -145,3 +145,73 @@ def poseScoring(json1, json2, visual_json):
     df = score(result)
     
     return result_sum, result, df
+
+def rename_point(part):
+    points = {
+        0: '코',
+        1: '왼쪽 눈 (안쪽)',
+        2: '왼쪽 눈',
+        3: '왼쪽 눈 (바깥쪽)',
+        4: '오른쪽 눈 (안쪽)',
+        5: '오른쪽 눈',
+        6: '오른쪽 눈 (바깥쪽)',
+        7: '왼쪽 귀',
+        8: '오른쪽 귀',
+        9: '입 (왼쪽)',
+        10: '입 (오른쪽)',
+        11: '왼쪽 어깨',
+        12: '오른쪽 어깨',
+        13: '왼쪽 팔꿈치',
+        14: '오른쪽 팔꿈치',
+        15: '왼쪽 손목',
+        16: '오른쪽 손목',
+        17: '왼쪽 새끼손가락',
+        18: '오른쪽 새끼손가락',
+        19: '왼쪽 검지',
+        20: '오른쪽 검지',
+        21: '왼쪽 엄지',
+        22: '오른쪽 엄지',
+        23: '왼쪽 엉덩이',
+        24: '오른쪽 엉덩이',
+        25: '왼쪽 무릎',
+        26: '오른쪽 무릎',
+        27: '왼쪽 발목',
+        28: '오른쪽 발목',
+        29: '왼쪽 발뒤꿈치',
+        30: '오른쪽 발뒤꿈치',
+        31: '왼쪽 발끝',
+        32: '오른쪽 발끝'
+    }
+    indices = part.split('-')
+    if part == '전체':
+        return '전체'
+    return f"{points.get(int(indices[0]), '알 수 없는 부위')}-{points.get(int(indices[1]), '알 수 없는 부위')}"
+
+def diagnose_clean(new_pose, old_pose, visual_json):
+    result_sum, result, score = poseScoring(new_pose, old_pose, visual_json)
+
+    standard_dict = {'11-12': 83.58,
+                     '11-13': 83.94,
+                     '11-23': 92.04,
+                     '12-14': 81.97,
+                     '12-24': 91.46,
+                     '13-15': 82.98,
+                     '14-16': 82.75,
+                     '23-24': 83.17,
+                     '23-25': 87.52,
+                     '24-26': 86.59,
+                     '25-27': 91.78,
+                     '26-28': 91.83,
+                     '전체': 85.99}
+
+    part_list = []
+    
+    for part in standard_dict.keys():
+        part_score = score.loc[score['부위'] == part, '평균점수'].values[0]
+        min_score = standard_dict[part]
+
+        if part_score < min_score:
+            part_list.append(rename_point(part))
+
+    return result_sum, result, score, part_list
+    

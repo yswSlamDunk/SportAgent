@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sport Agent</title>
+
+    <link rel="stylesheet" href="/static/styles/base.css">
+    <link rel="stylesheet" href="/static/styles/home.css">
+
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <img id="logo-image" src="/static/assets/logo.png" alt="logo">
+            
+        </div>
+        
+        <div class="header-nav">
+            <button class="login-button" onclick="login()">로그인</button>
+            <button class="signup-button" onclick="signup()">회원가입</button>
+        </div>
+
+    </header>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <button class="new-conversation-button" onclick="newConversation()">새 채팅</button>
+            <button class="sidebar-toggle-button" onclick="toggleSidebar()">숨기기</button>
+        </div>
+
+        <div class="sidebar-content">
+            <!-- 채팅 목록 기능이 필요하면 아래 주석을 해제하세요 -->
+            <!-- <p class="no-conversations">채팅이 없습니다.</p> -->
+        </div>
+    </div>
+
+    <!-- Chat Content -->
+    <main class="main">
+        <!-- <div class="chat-container">
+
+        </div>
+
+        <div class="chat-input-container">
+            <input type="text" id="chat-input" placeholder="메시지를 입력하세요...">
+        </div>
+         -->
+    </main>
+    <!-- Analytics -->
+    <div class="analytics">
+        <!-- <div class="analytics-container"></div> -->
+    </div>
+</body>
+</html>

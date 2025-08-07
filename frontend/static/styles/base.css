@@ -1,0 +1,15 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* Layout */
+    --header-height: 60px;
+
+    /* Color */
+    --color-primary: #3498db;
+    --color-secondary: #27ae60;
+    --color-background: #f0f0f0;
+}

@@ -1,0 +1,58 @@
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+}
+
+.sidebar, .main, .analytics {
+    position: relative;
+    top: var(--header-height); /* 헤더 높이와 동일하게 설정 */
+    float: left;
+}
+
+.sidebar {
+    width: 10%;
+    height: calc(100vh - var(--header-height));
+    border: 1px solid black;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: right;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+}
+
+#logo-image {
+    width: auto;
+    height: var(--header-height);
+}
+
+.header-nav {
+    display: flex;
+    gap: 10px;
+}
+
+.login-button, .signup-button {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.main {
+    width: 50%;
+    height: calc(100vh - var(--header-height));
+    border: 1px solid black;
+}
+
+.analytics {
+    width: 40%;
+    height: calc(100vh - var(--header-height));
+    border: 1px solid black;
+}
