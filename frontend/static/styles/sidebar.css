@@ -1,0 +1,11 @@
+.sidebar-header {
+    display: flex;
+    align-items: left;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+}

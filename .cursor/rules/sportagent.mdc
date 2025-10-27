@@ -1,0 +1,8 @@
+description: Frontend Styling
+globs:
+alwaysApply: flase
+---
+
+Frontend styling tasks should follow the default settings in base.css. 
+- Use relative units instead of px for sizing. 
+- Do not implement visual events (e.g., hover) unless explicitly requested by the user.

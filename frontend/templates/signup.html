@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', path='styles/signup.css') }}">
+{% endblock %}
+
+{% block headerNav %}
+{% endblock %}
+
+{% block content %}
+<div class="logo-container">
+    <img id="logo-image" src="/static/assets/logo.png" alt="logo">
+</div>
+
+<div class="signup-container">
+    <div class="value-proposition">
+        <!-- 제목을 동일 선상에 배치 -->
+        <div class="value-proposition-header">
+            <span class="highlight-heading">Sport Agent</span>
+            <span class="value-proposition-heading">와 함께 시작하세요</span>
+        </div>
+        
+        <div class="value-proposition-text">Plan and Execute 구조의 Agent는 복잡한 요청을 처리합니다.</div>
+        <div class="value-proposition-text">질의 목적에 맞는 모든 관련 맥락 정보를 선별 및 구조화하여 LLM이 최적의 피드백을 제공합니다.</div>
+    </div>
+
+    <form id="signupForm">
+        <div class="input-group">
+            <input type="text" name="user_id" id="userid" placeholder="아이디를 입력하세요" required>
+            <button type="button" class="duplicate-check-btn" onclick="checkDuplicate()">중복 확인</button>
+        </div>
+        <div class="duplicate-result" id="duplicateResult"></div>
+        
+        <input type="text" name="user_name" placeholder="사용자 이름을 입력하세요" required>
+        <input type="email" name="email_address" placeholder="이메일을 입력하세요" required>
+        <input type="password" name="password" id="password" placeholder="비밀번호를 입력하세요" required>
+        <input type="password" name="password_confirm" id="password_confirm" placeholder="비밀번호를 다시 입력하세요" required>
+        <div class="password-match" id="passwordMatch"></div>
+        
+        <div class="button-container">
+            <button type="submit" id="submitBtn">회원가입</button>
+            <!-- 이 부분 수정해야 함. -->
+            <a href="/login" class="login-button">로그인</a> 
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+<script type="module" src="{{ url_for('static', path='js/services/signup.js') }}" defer></script>

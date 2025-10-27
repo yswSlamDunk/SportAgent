@@ -1,0 +1,176 @@
+/* 로그인 페이지 전체 레이아웃 */
+.login-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+}
+
+/* 로고 */
+.logo-container {
+    text-align: left;
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+#logo-image {
+    width: auto;
+    height: var(--header-height);
+    margin: 1rem;
+    align-self: flex-start;
+}
+
+/* 가치 제안 영역 */
+.value-proposition {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.value-proposition-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+/* 제목 공통 스타일 */
+.highlight-heading,
+.value-proposition-heading {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-semibold);
+    display: inline;
+    margin: 0;
+    text-align: center;
+}
+
+.highlight-heading {
+    color: var(--accent-color);
+    font-weight: var(--font-weight-bold);
+}
+
+.value-proposition-heading {
+    color: var(--text-color);
+}
+
+.value-proposition-text {
+    font-size: var(--font-size-lg);
+    color: var(--text-color);
+    line-height: var(--line-height-relaxed);
+    margin-bottom: 1rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    white-space: nowrap;
+    text-align: center;
+    overflow: visible;
+    text-overflow: clip;
+}
+
+form {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    max-width: 420px;
+    margin: 0 auto;
+    width: 100%;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* 입력 필드 */
+input[type="text"], 
+input[type="password"] {
+    width: 100%;
+    padding: 16px 20px;
+    margin-bottom: 1.5rem;
+    border: 2px solid #e1e5e9;
+    border-radius: 10px;
+    font-size: var(--font-size-base);
+    font-family: inherit;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+    color: var(--text-color);
+}
+
+input[type="text"]:focus, 
+input[type="password"]:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+    transform: translateY(-1px);
+}
+
+input[type="text"]::placeholder, 
+input[type="password"]::placeholder {
+    color: #adb5bd;
+    font-weight: var(--font-weight-normal);
+}
+
+/* 버튼 컨테이너 */
+.button-container {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* 버튼 공통 스타일 */
+button[type="submit"], 
+.signup-button {
+    flex: 1;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 52px;
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+    .login-container {
+        padding: 1rem;
+        min-height: 90vh;
+    }
+    
+    .value-proposition-text {
+        white-space: normal;
+        line-height: var(--line-height-normal);
+        font-size: var(--font-size-base);
+    }
+    
+    .value-proposition-header {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .highlight-heading, 
+    .value-proposition-heading {
+        font-size: var(--font-size-2xl);
+    }
+    
+    .button-container {
+        flex-direction: column;
+    }
+    
+    form {
+        padding: 2rem 1.5rem;
+        margin: 0 1rem;
+    }
+}

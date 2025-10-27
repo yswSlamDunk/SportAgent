@@ -1,55 +1,149 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sport Agent</title>
+{% extends "base.html" %}
 
-    <link rel="stylesheet" href="/static/styles/base.css">
-    <link rel="stylesheet" href="/static/styles/home.css">
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', path='styles/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='styles/modal.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='styles/analyticsFigure.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='styles/analyticsImage.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='styles/analyticsTable.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='styles/select.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='styles/sidebar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='styles/button.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='styles/helpModal.css') }}">
+{% endblock %}
 
-</head>
-<body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <img id="logo-image" src="/static/assets/logo.png" alt="logo">
+{% block content %}
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo-container">
+                <img id="logo-image" src="/static/assets/logo.png" alt="logo">
+            </div>
+            <div class="sidebar-header">
+                <div class="new-conversation-button-container"></div>
+            </div>
+
+            <div class="sidebar-content">    
+            </div>
+        </div>
+
+        <!-- Chat Content -->
+        <main class="main">
+            <div class="chat-container">
+            </div>
+
+            <div class="chat-input-container">
+                <input type="text" id="chat-input" placeholder="메시지를 입력하세요...">
+                <div class="chat-input-container-footer">
+                </div>
+            </div>    
+        </main>
+
+        <!-- Analytics -->
+        <div class="analytics-container">
+            <div class="select-container">
+                <div class="select-action-group"></div>
+                <div class="select-date-group"></div>
+            </div>
+            <div class="analytics-figure-container">
+                <div class="analytics-figure-header">
+                    <label class="analytics-label" for="analytics-timeline-header">자세 매핑 그리드</label>
+                    <label class="analytics-timeline-help" for="analytics-timeline-header">?</label>
+                </div>
+                <div class="analytics-figure-timeline-container">
+                    <div class="analytics-figure-timeline"></div>
+                </div>
+            </div>
+            <div class="analytics-images-container">
+                <div class="analytics-images-header">
+                    <label class ="analytics-label" for="analytics-images-label">자세 비교 이미지</label>
+                </div>
+                <div class="analytics-images-content"></div>
+            </div>
+            <div class="analytics-table-container">
+                <div class="analytics-table-header">
+                    <label class="analytics-label" for="analytics-table-label">자세 종합 점수 표</label>
+                </div>
+                <div class="analytics-table-wrapper-container">
+                    <div class="analytics-table-wrapper"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="upload-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-header-row">
+                    <div class="modal-header-standard"></div>
+                    <div class="modal-header-user"></div>
+                    <div class="modal-header-video-name"></div>
+                </div>
+                <!-- <div class="modal-header-button"></div> -->
+            </div>
+            <div class="modal-video-container">
+                <div class="modal-video-standard-container"></div>
+                <div class="modal-video-user-container"></div>
+            </div>
+            <div class="modal-message-container"></div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+
+    <div id="help-modal" class="modal">
+        <div class="modal-content">
+            <div class="help-modal-header">
+                <h2>자세 매핑 그리드 도움말</h2>
+                <button class="modal-close-button">&times;</button>
+            </div>
             
-        </div>
-        
-        <div class="header-nav">
-            <button class="login-button" onclick="login()">로그인</button>
-            <button class="signup-button" onclick="signup()">회원가입</button>
-        </div>
+            <div class="help-modal-body">
+                <section class="help-section">
+                    <h3>자세 매핑 그리드란?</h3>
+                    <p>자세 매핑 그리드는 표준 자세와 사용자 자세의 차이를 DTW 알고리즘을 사용하여 시각적으로 표현한 그리드입니다.</p>
+                    <p>DTW 알고리즘의 결과인 시퀀스 메트릭스와 최단경로를 표준 자세를 기준으로 정렬하여 그리드로 표현한 것입니다.</p>
+                    <ul>
+                        <li>구분선 아래에는 표준 자세의 프레임(순간 자세)을 나타냅니다.</li>
+                        <li>구분선 위에는 사용자의 프레임을 나타냅니다.</li>
+                        <li>하나의 표준 자세 프레임에는 여러 개의 사용자 프레임이 매핑될 수 있습니다.</li>
+                        <li>하나의 사용자 프레임에는 여러 개의 표준 자세 프레임이 매핑될 수 있습니다.</li>
+                    </ul>
+                    <div class="help-image-container">
+                        <img src="/static/assets/mapping_grid.png" alt="mapping_grid">
+                    </div>
+                </section>
 
-    </header>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <button class="new-conversation-button" onclick="newConversation()">새 채팅</button>
-            <button class="sidebar-toggle-button" onclick="toggleSidebar()">숨기기</button>
-        </div>
+                <section class="help-section">
+                    <h3>DTW 알고리즘이란?</h3>
+                    <p>DTW(Dynamic Time Warping)는 시간의 길이가 다른 두 시계열 데이터의 차이를 계산하는 알고리즘입니다.</p>
+                    <p>DTW 알고리즘의 결과로 시퀀스 메트릭스와 가장 값이 작은 최단경로가 생성됩니다.</p>
+                    <div class="help-image-container">
+                        <img src="/static/assets/dtw.png" alt="dtw">
+                    </div>
+                </section>
 
-        <div class="sidebar-content">
-            <!-- 채팅 목록 기능이 필요하면 아래 주석을 해제하세요 -->
-            <!-- <p class="no-conversations">채팅이 없습니다.</p> -->
+                <section class="help-section">
+                    <h3>자세 매핑 그리드 해석 방법</h3>
+                    <ul>
+                        <li><strong>색상 의미:</strong> 사용자 프레임의 색은 사용자의 자세와 표준 자세의 차이가 클수록 초록색에 가까워지고, 차이가 작을수록 빨간색에 가까워집니다.</li>
+                        <li><strong>상대적 차이:</strong> 색은 절대적인 차이가 아닌, 상대적인 차이(가장 차이나는 프레임과 가장 유사한 프레임의 차이 기준)를 나타냅니다.</li>
+                        <li><strong>동작 지연:</strong> 하나의 표준 자세 프레임에 여러 개의 사용자 프레임이 매핑되어 있는 경우, 동작의 지연이 발생한 것으로 판단할 수 있습니다.</li>
+                        <li><strong>점수 경향:</strong> DTW의 경우 영상의 끝 프레임을 기준으로 유사도를 계산하기에, 자세 매핑 그리드의 끝 부분(오른쪽)의 점수가 앞쪽 프레임 대비 유사도가 낮은 경향이 있습니다.</li>
+                    </ul>
+                </section>
+
+                <section class="help-section">
+                    <h3>참고 사항</h3>
+                    <ul>
+                        <li>사용자 프레임을 클릭할 경우, 해당 프레임의 표준 자세, 사용자 자세 이미지가 표시됩니다.</li>
+                        <li>사용자 프레임에 마우스를 올리면, 차이 값이 표시됩니다.</li>
+                        <li>특정 표준 자세 프레임에 과하게 사용자 프레임이 매핑되어 그리드 상단에 숨겨진 사용자 프레임이 있는 경우, 스크롤을 통해 사용자 프레임을 확인할 수 있습니다.</li>
+                    </ul>
+                </section>
+            </div>
         </div>
     </div>
 
-    <!-- Chat Content -->
-    <main class="main">
-        <!-- <div class="chat-container">
-
-        </div>
-
-        <div class="chat-input-container">
-            <input type="text" id="chat-input" placeholder="메시지를 입력하세요...">
-        </div>
-         -->
-    </main>
-    <!-- Analytics -->
-    <div class="analytics">
-        <!-- <div class="analytics-container"></div> -->
-    </div>
-</body>
-</html>
+    
+    <script type="module" src="{{ url_for('static', path='js/page/home.js') }}"></script>
+{% endblock %}

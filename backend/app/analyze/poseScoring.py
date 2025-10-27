@@ -1,7 +1,5 @@
 import numpy as np
 import pandas as pd
-import json
-import pickle
 
 def norm1(positionVector):
     magnitude = np.linalg.norm(positionVector)
@@ -114,7 +112,9 @@ def partScoring(result, body_name, result_origin_list):
 
 def score(result):
     df = {}
-    for i, key in enumerate(list(result.keys())[2:]):
+    keys_list = list(result.keys())[2:]  # shortestPath, shortestScoring 제외
+    
+    for i, key in enumerate(keys_list):
         if i == 0:
             df['부위'] = [key]        
             df['평균점수'] = [round(np.mean(result[key]), 2)]
@@ -124,17 +124,18 @@ def score(result):
 
     df['부위'] += ['전체']
     df['평균점수'] += [round(sum(df['평균점수']) / len(df['평균점수']), 2)]
-
+    
     return pd.DataFrame(df)
 
 
-def poseScoring(json1, json2, visual_json):
+def poseScoring(json1, json2):
+    visual_json = {"0": [1, 4], "1": [2], "2": [3], "3": [7], "4": [5], "5": [6], "6": [8], "9": [10], "11": [12, 13, 23], "12": [14, 24], "13": [15], "14": [16], "15": [17, 19, 21], "16": [18, 20, 22], "17": [19], "18": [20], "23": [24, 25], "24": [26], "25": [27], "26": [28], "27": [29, 31], "28": [30, 32], "29": [31], "30": [32]}
     body_dict1 = makeBody(json1, visual_json)
     body_dict2 = makeBody(json2, visual_json)
 
     result_list = []
     result_origin_list = []
-    for i, body_part in enumerate(body_dict1.keys()):
+    for body_part in body_dict1.keys():
         distance_array, distance_array_origin = dynamicTimeWarpingPart(body_dict1[body_part], body_dict2[body_part])
         result_list.append(distance_array)
         result_origin_list.append(distance_array_origin)
@@ -148,78 +149,22 @@ def poseScoring(json1, json2, visual_json):
     
     return result_sum, result, df
 
-def rename_point(part):
-    points = {
-        0: '코',
-        1: '왼쪽 눈 (안쪽)',
-        2: '왼쪽 눈',
-        3: '왼쪽 눈 (바깥쪽)',
-        4: '오른쪽 눈 (안쪽)',
-        5: '오른쪽 눈',
-        6: '오른쪽 눈 (바깥쪽)',
-        7: '왼쪽 귀',
-        8: '오른쪽 귀',
-        9: '입 (왼쪽)',
-        10: '입 (오른쪽)',
-        11: '왼쪽 어깨',
-        12: '오른쪽 어깨',
-        13: '왼쪽 팔꿈치',
-        14: '오른쪽 팔꿈치',
-        15: '왼쪽 손목',
-        16: '오른쪽 손목',
-        17: '왼쪽 새끼손가락',
-        18: '오른쪽 새끼손가락',
-        19: '왼쪽 검지',
-        20: '오른쪽 검지',
-        21: '왼쪽 엄지',
-        22: '오른쪽 엄지',
-        23: '왼쪽 엉덩이',
-        24: '오른쪽 엉덩이',
-        25: '왼쪽 무릎',
-        26: '오른쪽 무릎',
-        27: '왼쪽 발목',
-        28: '오른쪽 발목',
-        29: '왼쪽 발뒤꿈치',
-        30: '오른쪽 발뒤꿈치',
-        31: '왼쪽 발끝',
-        32: '오른쪽 발끝'
-    }
-    indices = part.split('-')
-    if part == '전체':
-        return '전체'
-    return f"{points.get(int(indices[0]), '알 수 없는 부위')}-{points.get(int(indices[1]), '알 수 없는 부위')}"
-
-# 이걸 수정해야 함.
-def diagnose_clean(new_pose, old_pose_path='../data/tmp/Keypoints/normal_high_2.pkl', visual_json_path="../data/tmp/visualize_pose.json"):
-    old_pose = pickle.load(open(old_pose_path, 'rb'))
-    visual_json = json.load(open(visual_json_path, 'r'))
-    result_sum, result, score = poseScoring(new_pose, old_pose, visual_json)
-
-    standard_dict = {'11-12': 83.58,
-                     '11-13': 83.94,
-                     '11-23': 92.04,
-                     '12-14': 81.97,
-                     '12-24': 91.46,
-                     '13-15': 82.98,
-                     '14-16': 82.75,
-                     '23-24': 83.17,
-                     '23-25': 87.52,
-                     '24-26': 86.59,
-                     '25-27': 91.78,
-                     '26-28': 91.83,
-                     '전체': 85.99}
-
-    score['부위'] = score['부위'].apply(rename_point)
-
+def analyze_pose(standard_pose, user_pose, standard_dict, standard_scores):  
+    result_sum, result, score = poseScoring(standard_pose, user_pose)
     part_list = []
     
-    for part in standard_dict.keys():
-        korean_part = rename_point(part)
-        part_score = score.loc[score['부위'] == korean_part, '평균점수'].values[0]
-        min_score = standard_dict[part]
+    part_mapping = {row['body_part']: row['body_part_korean'] for row in standard_scores}
 
-        if part_score < min_score:
-            part_list.append(korean_part)
-
-    return result_sum, result, score, part_list
     
+    for part in standard_dict.keys():
+        if part in score['부위'].values:
+            part_score = score.loc[score['부위'] == part, '평균점수'].values[0]
+            min_score = standard_dict[part]
+            
+            if part_score < min_score:
+                korean_name = part_mapping.get(part, part)
+                part_list.append(korean_name)
+        else:
+            continue
+    
+    return result_sum, result, score, part_list

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', path='styles/login.css') }}">
+<script type="module" src="{{ url_for('static', path='js/services/login.js') }}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="logo-container">
+    <img id="logo-image" src="/static/assets/logo.png" alt="logo">
+</div>
+<div class="login-container">
+    <div class="value-proposition">
+        <div class="value-proposition-header">
+            <span class="highlight-heading">스포츠 에이전트</span>
+            <span class="value-proposition-heading">로 자세를 분석하고 전문적인 피드백을 받으세요.</span>
+        </div>
+        
+        <div class="value-proposition-text">고가의 개인 트레이닝, 전문성 낮은 트레이너 대신 인공지능이 즉시 피드백을 제공합니다.</div>
+        <div class="value-proposition-text">인공지능이 운동 자세를 분석해 점수를 매기고 기록합니다.</div>
+        <div class="value-proposition-text">사용자의 운동 기록과 전문 문서에 기반한 피드백을 제공합니다.</div>
+    </div>
+
+    <form id="loginForm">
+        <input type="text" name="user_id" placeholder="아이디를 입력하세요" required>
+        <input type="password" name="password" placeholder="비밀번호를 입력하세요" required>
+    
+        <div class="button-container">
+            <button type="submit">로그인</button>
+            <a href="/signup" class="signup-button">회원가입</a>
+        </div>
+    </form>
+    
+</div>
+{% endblock %}

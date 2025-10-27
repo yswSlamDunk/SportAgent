@@ -1,0 +1,233 @@
+/* Modal Container */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.show {
+    display: flex;
+}
+
+/* Modal Content */
+.modal-content {
+    background-color: var(--white);
+    border-radius: 0.5rem;
+    box-shadow: 0 0.25rem 1rem var(--shadow-color);
+    width: 80vw;
+    max-width: 75rem;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    margin: auto;
+}
+
+/* Modal Header */
+.modal-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-bottom: 0.0625rem solid var(--light-gray);
+    background-color: var(--white-gray);
+}
+
+.modal-header-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.modal-header-standard,
+.modal-header-user {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.modal-header-video-name {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem;
+}
+
+.modal-header-button {
+    display: flex;
+    gap: 0.5rem;
+    align-self: flex-end;
+}
+
+.modal-header label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-color);
+}
+
+.modal-header select,
+.modal-header input {
+    padding: 0.5rem;
+    border: 0.0625rem solid var(--gray);
+    border-radius: 0.25rem;
+    font-size: var(--font-size-sm);
+    background-color: var(--white);
+}
+
+/* Modal Footer */
+.modal-footer {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-top: 0.0625rem solid var(--light-gray);
+    background-color: var(--white-gray);
+}
+
+/* Modal Video Container */
+.modal-video-container {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background-color: var(--white);
+}
+/* 나중에 동영상 크기를 고려해야 함. */
+
+.modal-video-standard-container,
+.modal-video-user-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--white-gray);
+    min-height: 12.5rem;
+    padding: 1rem;
+}
+
+.modal-video-standard,
+.modal-video-user {
+    max-width: 100%;
+    max-height: 25rem;
+    width: auto;
+    height: auto;
+    border-radius: 0.25rem;
+} 
+
+
+/* .modal-video-standard-label, .modal-video-user-label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-color);
+    align-self: flex-start;
+} */
+
+/* Modal Message Container */
+.modal-message-container {
+    padding: 1rem 1.5rem;
+    border-top: 0.0625rem solid var(--light-gray);
+    background-color: var(--white-gray);
+}
+
+/* Modal Text */
+.modal-text {
+    background-color: var(--white);
+    border: 0.0625rem solid var(--gray);
+    border-radius: 0.25rem;
+    padding: 0.75rem;
+    font-family: monospace;
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-normal);
+    min-height: 6.25rem;
+    max-height: 12.5rem;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    color: var(--text-color);
+}
+
+.modalVideoNameText {
+    resize: none;
+    padding: 0.5rem;
+    align-items: center;
+}
+
+/* Modal Buttons */
+.viewVideoModal,
+.uploadVideoModal {
+    padding: 0.75rem 1.5rem;
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    min-width: 7rem;
+}
+
+.viewVideoModal:disabled,
+.uploadVideoModal:disabled {
+    background-color: var(--gray);
+    cursor: not-allowed;
+}
+
+/* 추가: 로딩 상태에서 비활성화된 요소들 스타일 */
+select:disabled,
+input:disabled,
+textarea:disabled {
+    background-color: var(--light-gray);
+    color: var(--gray);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Modal Labels */
+#loggingTextLabel {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-color);
+    font-size: var(--font-size-sm);
+}
+
+/* Responsive Design */
+@media (max-width: 48rem) {
+    .modal-video-container {
+        flex-direction: column;
+    }
+    
+    .modal-header-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .modal-header-standard,
+    .modal-header-user,
+    .modal-header-video-name {
+        flex: none;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .modal-video-standard,
+    .modal-video-user {
+        max-height: 20rem;
+    }
+    
+    .modal-video-container {
+        padding: 0.5rem;
+    }
+}
