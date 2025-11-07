@@ -152,58 +152,59 @@ async def get_pose_sessions(sport_id: int, user_id: int):
         error_details = traceback.format_exc()
         return {"success": False, "message": f"세션 목록 조회 실패: {str(e)}", "error_details": error_details}
 
-@router.get("/session-results/{session_id}")
-async def get_session_results(session_id: int):
-    """특정 세션의 분석 결과 조회"""
-    try:
-        # 전체 평균 점수
-        overall_score_query = db.execute_query(
-            """SELECT AVG(average_score) as overall_score FROM pose_scores WHERE session_id = %s""",
-            (session_id,)
-        )
-        overall_score = overall_score_query[0]['overall_score'] if overall_score_query else None
+# @router.get("/session-results/{session_id}")
+# async def get_session_results(session_id: int):
+#     """특정 세션의 분석 결과 조회"""
+#     try:
+#         # 전체 평균 점수
+#         overall_score_query = db.execute_query(
+#             """SELECT AVG(average_score) as overall_score FROM pose_scores WHERE session_id = %s""",
+#             (session_id,)
+#         )
+#         overall_score = overall_score_query[0]['overall_score'] if overall_score_query else None
         
-        # 신체 부위별 점수 (한글명 포함)
-        body_part_scores = db.execute_query(
-            """SELECT ps.body_part, ps.average_score, ps.is_below_standard, ps.standard_score,
-                      COALESCE(ss.body_part_korean, ps.body_part) as body_part_korean
-               FROM pose_scores ps
-               LEFT JOIN sport_standard_scores ss ON ss.body_part = ps.body_part 
-                   AND ss.video_id = (SELECT standard_video_id FROM pose_evaluation_sessions WHERE id = %s)
-               WHERE ps.session_id = %s""",
-            (session_id, session_id)
-        )
+#         # 신체 부위별 점수 (한글명 포함)
+#         body_part_scores = db.execute_query(
+#             """SELECT ps.body_part, ps.average_score, ps.is_below_standard, ps.standard_score,
+#                       COALESCE(ss.body_part_korean, ps.body_part) as body_part_korean
+#                FROM pose_scores ps
+#                LEFT JOIN sport_standard_scores ss ON ss.body_part = ps.body_part 
+#                    AND ss.video_id = (SELECT standard_video_id FROM pose_evaluation_sessions WHERE id = %s)
+#                WHERE ps.session_id = %s""",
+#             (session_id, session_id)
+#         )
         
-        # 개선이 필요한 부위
-        improvement_areas = db.execute_query(
-            """SELECT DISTINCT COALESCE(ss.body_part_korean, ps.body_part) as body_part_korean
-               FROM pose_scores ps
-               LEFT JOIN sport_standard_scores ss ON ss.body_part = ps.body_part 
-                   AND ss.video_id = (SELECT standard_video_id FROM pose_evaluation_sessions WHERE id = %s)
-               WHERE ps.session_id = %s AND ps.is_below_standard = 1""",
-            (session_id, session_id)
-        )
+#         # 개선이 필요한 부위
+#         improvement_areas = db.execute_query(
+#             """SELECT COALESCE(ss.body_part_korean, ps.body_part) as body_part_korean
+#                FROM pose_scores ps
+#                INNER JOIN pose_evaluation_sessions pes ON ps.session_id = pes.id
+#                LEFT JOIN sport_standard_scores ss ON ss.body_part = ps.body_part 
+#                    AND ss.video_id = pes.standard_video_id
+#                WHERE ps.session_id = %s AND ps.status = 'below_standard'""",
+#             (session_id,)
+#         )
         
-        return {
-            "success": True,
-            "overall_score": float(overall_score) if overall_score else None,
-            "body_part_scores": [
-                {
-                    "body_part": score['body_part'],
-                    "body_part_korean": score['body_part_korean'],
-                    "average_score": float(score['average_score']),
-                    "is_below_standard": bool(score['is_below_standard']),
-                    "standard_score": float(score['standard_score']) if score['standard_score'] else None
-                }
-                for score in body_part_scores
-            ],
-            "improvement_areas": [area['body_part_korean'] for area in improvement_areas]
-        }
+#         return {
+#             "success": True,
+#             "overall_score": float(overall_score) if overall_score else None,
+#             "body_part_scores": [
+#                 {
+#                     "body_part": score['body_part'],
+#                     "body_part_korean": score['body_part_korean'],
+#                     "average_score": float(score['average_score']),
+#                     "is_below_standard": bool(score['is_below_standard']),
+#                     "standard_score": float(score['standard_score']) if score['standard_score'] else None
+#                 }
+#                 for score in body_part_scores
+#             ],
+#             "improvement_areas": [area['body_part_korean'] for area in improvement_areas]
+#         }
         
-    except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
-        return {"success": False, "message": f"세션 결과 조회 실패: {str(e)}", "error_details": error_details}
+#     except Exception as e:
+#         import traceback
+#         error_details = traceback.format_exc()
+#         return {"success": False, "message": f"세션 결과 조회 실패: {str(e)}", "error_details": error_details}
 
 
 def save_pose_analysis_to_db(result_sum, result, score_df, standard_dict, standard_scores, user_id, sport_id, user_video_id, standard_video_id):
@@ -241,13 +242,24 @@ def save_pose_scores_to_db(session_id, score_df, standard_dict, standard_scores)
         
         # standard_dict에 존재하는 부위만 저장
         if body_part in standard_dict:
-            standard_score = standard_dict[body_part]
-            is_below_standard = 1 if average_score < standard_score else 0
+            standard_score = float(standard_dict[body_part])  # Decimal을 float로 변환
+            average_score = float(average_score)  # 확실하게 float로 변환
+            
+            # 3단계 상태: achieved=기준 달성, warning=주의 필요, below_standard=기준 미달
+            score_difference = abs(standard_score - average_score)
+            threshold = standard_score * 0.05
+            
+            if average_score < standard_score:
+                status = 'below_standard'  # 기준 미달
+            elif score_difference <= threshold:
+                status = 'warning'  # 주의 필요
+            else:
+                status = 'achieved'  # 기준 달성
             
             db.execute_update(
-                """INSERT INTO pose_scores (session_id, body_part, average_score, is_below_standard) 
+                """INSERT INTO pose_scores (session_id, body_part, average_score, status) 
                    VALUES (%s, %s, %s, %s)""",
-                (session_id, body_part, float(average_score), is_below_standard)
+                (session_id, body_part, average_score, status)
             )
         else:
             continue

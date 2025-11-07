@@ -148,8 +148,7 @@
     font-family: monospace;
     font-size: var(--font-size-sm);
     line-height: var(--line-height-normal);
-    min-height: 6.25rem;
-    max-height: 12.5rem;
+    height: 6.25rem;
     overflow-y: auto;
     white-space: pre-wrap;
     color: var(--text-color);

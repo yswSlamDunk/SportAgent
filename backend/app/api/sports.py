@@ -16,7 +16,6 @@ async def get_sports():
 @router.get("/{sport_id}/pose-estimations")
 async def get_valid_pose_estimations(sport_id: int, current_user: int = Depends(get_current_user)):
     """특정 운동 종목의 유효한 포즈 추정 데이터 조회"""
-    print(f"디버깅: sport_id={sport_id}, current_user={current_user}, type={type(current_user)}")
 
     try:    
         pose_estimations = db.execute_query(

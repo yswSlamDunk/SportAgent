@@ -1,4 +1,3 @@
-import pickle
 import os
 from kiwipiepy import Kiwi
 import cohere
@@ -8,8 +7,8 @@ from typing import List
 from ragas.testset.graph import KnowledgeGraph
 from rank_bm25 import BM25Okapi
 
-from langchain.vectorstores import FAISS
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_community.vectorstores import FAISS
+from langchain_openai import OpenAIEmbeddings
 
 class BM25:
     def __init__(self, type: str = 'None', k: int = 20):
@@ -45,7 +44,15 @@ class BM25:
         return self.vectorizer.get_top_n(processed_query, self.texts, n=self.k)
 
 class Rag:
+    # 클래스 변수로 싱글톤 상태 관리
+    _instance = None
+    _initialized = False
+    
     def __init__(self, alpha=0.4, threshold=0.1, k=20, kg_path=None):
+        # 이미 초기화됐으면 재초기화 방지
+        if Rag._initialized:
+            return
+            
         self.alpha = alpha
         self.threshold = threshold
         self.k = k
@@ -75,14 +82,15 @@ class Rag:
                                                  "score_threshold": self.threshold})
 
         self.cohere = cohere.ClientV2()
-
+        
+        # 싱글톤 인스턴스 저장
+        Rag._instance = self
+        Rag._initialized = True
 
     def rerank(self, query: str, contexts: List[str]):
         result = self.cohere.rerank(model='rerank-v3.5', query=query, documents=contexts)
         result = [re.index for re in result.results]
-
         return result
-
 
     def precompute(self, dense, sparse):
         results = []
@@ -122,3 +130,15 @@ class Rag:
         reranked_results = [precomputed_results[i] for i in reranked_index]
 
         return reranked_results
+
+    @staticmethod
+    def search_static(query: str) -> List[str]:
+        """정적 메서드: Rag.search_static('query') 형태로 사용"""
+        if not Rag._initialized:
+            Rag()  # 자동 초기화
+        return Rag._instance.search(query)
+
+# 편의 함수
+def search(query: str) -> List[str]:
+    """모듈 레벨 함수: search('query') 형태로 사용"""
+    return Rag.search_static(query)

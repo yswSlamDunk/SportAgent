@@ -19,13 +19,14 @@ async def get_score(session_id: int):
         
         # 2. 신체 부위별 점수 정보 (한글명 포함)
         body_part_scores = db.execute_query(
-            """SELECT ps.body_part, ps.average_score, ps.is_below_standard, ss.standard_score,
+            """SELECT ps.body_part, ps.average_score, ps.status, ss.standard_score,
                       COALESCE(ss.body_part_korean, ps.body_part) as body_part_korean
                FROM pose_scores ps
+               INNER JOIN pose_evaluation_sessions pes ON ps.session_id = pes.id
                LEFT JOIN sport_standard_scores ss ON ss.body_part = ps.body_part 
-                   AND ss.video_id = (SELECT standard_video_id FROM pose_evaluation_sessions WHERE id = %s)
+                   AND ss.video_id = pes.standard_video_id
                WHERE ps.session_id = %s""",
-            (session_id, session_id)
+            (session_id,)
         )
         # 3. result_sum 매트릭스 데이터 (analytics-figure용)
         analytics_data = db.execute_query(
@@ -44,7 +45,7 @@ async def get_score(session_id: int):
                     "body_part": score['body_part'],
                     "body_part_korean": score['body_part_korean'],
                     "average_score": float(score['average_score']),
-                    "is_below_standard": bool(score['is_below_standard']),
+                    "status": score['status'],
                     "standard_score": float(score['standard_score']) if score['standard_score'] else None
                 }
                 for score in body_part_scores

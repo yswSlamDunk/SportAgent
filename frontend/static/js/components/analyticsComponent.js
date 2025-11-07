@@ -186,14 +186,20 @@ export class AnalyticsImages extends ComponentBase {
         if (type === 'standard') {
             const standardVideoPath = this.globalState.selectedStandardVideoPath;
             if (standardVideoPath) {
-                const fileName = standardVideoPath.split('/').pop() || standardVideoPath.split('\\').pop();
-                return fileName.split('.')[0];
+                // 슬래시로 구분된 경로에서 파일명 추출
+                const fileName = standardVideoPath.split('/').pop();
+                const videoName = fileName.split('.')[0];
+                console.log('Standard video path:', standardVideoPath, '-> Video name:', videoName);
+                return videoName;
             }
         } else {
             const userVideoPath = this.globalState.selectedUserVideoPath;
             if (userVideoPath) {
-                const fileName = userVideoPath.split('\\').pop();
-                return fileName.split('.')[0]; // 확장자 제거
+                // 슬래시로 구분된 경로에서 파일명 추출
+                const fileName = userVideoPath.split('/').pop();
+                const videoName = fileName.split('.')[0];
+                console.log('User video path:', userVideoPath, '-> Video name:', videoName);
+                return videoName;
             }
         }
         return type === 'standard' ? 'standard_video' : 'user_video';
@@ -253,7 +259,7 @@ export class AnalyticsTable extends ComponentBase {
             
             // 부위명 셀 (한글명 사용)
             const bodyPartCell = this.createElement('td');
-            const koreanName = score.body_part_korean || score.body_part;
+            const koreanName = score.body_part_korean;
             bodyPartCell.textContent = koreanName;
             row.appendChild(bodyPartCell);
             
@@ -270,18 +276,15 @@ export class AnalyticsTable extends ComponentBase {
             
             // 기준 미달 여부 셀
             const belowStandardCell = this.createElement('td');
-            
-            const averageScore = score.average_score || 0;
-            const scoreDifference = Math.abs(standardScore - averageScore);
-            const threshold = standardScore * 0.05;
-            
+                        
             let statusText;
             let statusColor;
             
-            if (score.is_below_standard) {
+            // status: 'achieved'=기준 달성, 'warning'=주의 필요, 'below_standard'=기준 미달
+            if (score.status === 'below_standard') {
                 statusText = '기준 미달';
                 statusColor = '#dc3545';
-            } else if (scoreDifference <= threshold) {
+            } else if (score.status === 'warning') {
                 statusText = '주의 필요';
                 statusColor = '#fd7e14';
             } else {
