@@ -153,16 +153,16 @@ def analyze_pose(standard_pose, user_pose, standard_dict, standard_scores):
     result_sum, result, score = poseScoring(standard_pose, user_pose)
     part_list = []
     
-    part_mapping = {row['body_part']: row['body_part_korean'] for row in standard_scores}
+    part_mapping = {row['connection_index']: row['connection_name'] for row in standard_scores}
 
     
-    for part in standard_dict.keys():
-        if part in score['부위'].values:
-            part_score = score.loc[score['부위'] == part, '평균점수'].values[0]
-            min_score = standard_dict[part]
+    for connection_index in standard_dict.keys():
+        if connection_index in score['부위'].values:
+            part_score = score.loc[score['부위'] == connection_index, '평균점수'].values[0]
+            min_score = standard_dict[connection_index]
             
             if part_score < min_score:
-                korean_name = part_mapping.get(part, part)
+                korean_name = part_mapping.get(connection_index, connection_index)
                 part_list.append(korean_name)
         else:
             continue

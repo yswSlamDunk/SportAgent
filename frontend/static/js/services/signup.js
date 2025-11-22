@@ -31,4 +31,8 @@ export async function signup(event) {
     }
 }
 
-document.getElementById('signupForm').addEventListener('submit', signup);
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('signupForm');
+    if (!form) return;
+    form.addEventListener('submit', signup);
+});

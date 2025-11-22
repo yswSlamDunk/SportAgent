@@ -39,11 +39,10 @@
         
         <div class="button-container">
             <button type="submit" id="submitBtn">회원가입</button>
-            <!-- 이 부분 수정해야 함. -->
             <a href="/login" class="login-button">로그인</a> 
         </div>
     </form>
 </div>
 {% endblock %}
 
-<script type="module" src="{{ url_for('static', path='js/services/signup.js') }}" defer></script>
+<script type="module" src="{{ url_for('static', filename='js/services/signup.js') }}" defer></script>

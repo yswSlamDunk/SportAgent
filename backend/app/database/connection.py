@@ -22,7 +22,6 @@ class DatabaseConnection:
         try:
             self.connection = mysql.connector.connect(**self.config)
             if self.connection.is_connected():
-                print("Connected to MySQL database")
                 return True
         except Error as e:
             print(f"Error: {e}")
@@ -33,7 +32,7 @@ class DatabaseConnection:
             self.connect()
         return self.connection
     
-    def execute_query(self, query: str, params: Optional[tuple] = None):
+    def execute_query(self, query: str, params: Optional[tuple] = None, structured: bool = False):
         try:
             connection = self.get_connection()
             cursor = connection.cursor(dictionary=True)
@@ -45,10 +44,13 @@ class DatabaseConnection:
             
             result = cursor.fetchall()
             cursor.close()
+            if structured:
+                return {"success": True, "data": result}
             return result
 
         except Error as e:
-            print(f"Error: {e}")
+            if structured:
+                return {"success": False, "error": str(e)}
             return None
     
     def execute_update(self, query: str, params: Optional[tuple] = None):

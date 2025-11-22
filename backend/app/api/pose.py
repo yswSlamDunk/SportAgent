@@ -99,11 +99,11 @@ async def pose_scoring(standard_video_id: int, user_video_id: int, user_id: int,
         user_pose = user_pose_data[0]  
         
         standard_scores = db.execute_query(
-            """SELECT body_part, body_part_korean, standard_score FROM sport_standard_scores WHERE video_id = %s""",
+            """SELECT connection_index, connection_name, standard_score FROM sport_standard_scores WHERE video_id = %s""",
             (standard_video_id,)
         )
         
-        standard_dict = {row['body_part']: row['standard_score'] for row in standard_scores}       
+        standard_dict = {row['connection_index']: row['standard_score'] for row in standard_scores}       
         result_sum, result, score, part_list = analyze_pose(standard_pose, user_pose, standard_dict, standard_scores)
         
         session_id = save_pose_analysis_to_db(result_sum, result, score, standard_dict, standard_scores, user_id, sport_id, user_video_id, standard_video_id)
@@ -152,61 +152,6 @@ async def get_pose_sessions(sport_id: int, user_id: int):
         error_details = traceback.format_exc()
         return {"success": False, "message": f"세션 목록 조회 실패: {str(e)}", "error_details": error_details}
 
-# @router.get("/session-results/{session_id}")
-# async def get_session_results(session_id: int):
-#     """특정 세션의 분석 결과 조회"""
-#     try:
-#         # 전체 평균 점수
-#         overall_score_query = db.execute_query(
-#             """SELECT AVG(average_score) as overall_score FROM pose_scores WHERE session_id = %s""",
-#             (session_id,)
-#         )
-#         overall_score = overall_score_query[0]['overall_score'] if overall_score_query else None
-        
-#         # 신체 부위별 점수 (한글명 포함)
-#         body_part_scores = db.execute_query(
-#             """SELECT ps.body_part, ps.average_score, ps.is_below_standard, ps.standard_score,
-#                       COALESCE(ss.body_part_korean, ps.body_part) as body_part_korean
-#                FROM pose_scores ps
-#                LEFT JOIN sport_standard_scores ss ON ss.body_part = ps.body_part 
-#                    AND ss.video_id = (SELECT standard_video_id FROM pose_evaluation_sessions WHERE id = %s)
-#                WHERE ps.session_id = %s""",
-#             (session_id, session_id)
-#         )
-        
-#         # 개선이 필요한 부위
-#         improvement_areas = db.execute_query(
-#             """SELECT COALESCE(ss.body_part_korean, ps.body_part) as body_part_korean
-#                FROM pose_scores ps
-#                INNER JOIN pose_evaluation_sessions pes ON ps.session_id = pes.id
-#                LEFT JOIN sport_standard_scores ss ON ss.body_part = ps.body_part 
-#                    AND ss.video_id = pes.standard_video_id
-#                WHERE ps.session_id = %s AND ps.status = 'below_standard'""",
-#             (session_id,)
-#         )
-        
-#         return {
-#             "success": True,
-#             "overall_score": float(overall_score) if overall_score else None,
-#             "body_part_scores": [
-#                 {
-#                     "body_part": score['body_part'],
-#                     "body_part_korean": score['body_part_korean'],
-#                     "average_score": float(score['average_score']),
-#                     "is_below_standard": bool(score['is_below_standard']),
-#                     "standard_score": float(score['standard_score']) if score['standard_score'] else None
-#                 }
-#                 for score in body_part_scores
-#             ],
-#             "improvement_areas": [area['body_part_korean'] for area in improvement_areas]
-#         }
-        
-#     except Exception as e:
-#         import traceback
-#         error_details = traceback.format_exc()
-#         return {"success": False, "message": f"세션 결과 조회 실패: {str(e)}", "error_details": error_details}
-
-
 def save_pose_analysis_to_db(result_sum, result, score_df, standard_dict, standard_scores, user_id, sport_id, user_video_id, standard_video_id):
     """analyze_pose의 모든 결과를 DB에 저장"""
     
@@ -237,12 +182,12 @@ def save_pose_matrices_to_db(session_id, result_sum):
 def save_pose_scores_to_db(session_id, score_df, standard_dict, standard_scores):
     """score_df를 pose_scores 테이블에 저장"""
     for index, row in score_df.iterrows():
-        body_part = row.get('부위', row.get('body_part', 'unknown'))
+        connection_index = row.get('connection_index', row.get('connection_index', 'unknown'))
         average_score = row.get('평균점수', row.get('score', 0))
         
         # standard_dict에 존재하는 부위만 저장
-        if body_part in standard_dict:
-            standard_score = float(standard_dict[body_part])  # Decimal을 float로 변환
+        if connection_index in standard_dict:
+            standard_score = float(standard_dict[connection_index])  # Decimal을 float로 변환
             average_score = float(average_score)  # 확실하게 float로 변환
             
             # 3단계 상태: achieved=기준 달성, warning=주의 필요, below_standard=기준 미달
@@ -257,9 +202,9 @@ def save_pose_scores_to_db(session_id, score_df, standard_dict, standard_scores)
                 status = 'achieved'  # 기준 달성
             
             db.execute_update(
-                """INSERT INTO pose_scores (session_id, body_part, average_score, status) 
+                """INSERT INTO pose_scores (session_id, connection_index, average_score, status) 
                    VALUES (%s, %s, %s, %s)""",
-                (session_id, body_part, average_score, status)
+                (session_id, connection_index, average_score, status)
             )
         else:
             continue

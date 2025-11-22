@@ -258,15 +258,15 @@ export class AnalyticsTable extends ComponentBase {
             }
             
             // 부위명 셀 (한글명 사용)
-            const bodyPartCell = this.createElement('td');
-            const koreanName = score.body_part_korean;
-            bodyPartCell.textContent = koreanName;
-            row.appendChild(bodyPartCell);
+            const connectionNameCell = this.createElement('td');
+            const connectionName = score.connection_name;
+            connectionNameCell.textContent = connectionName;
+            row.appendChild(connectionNameCell);
             
             // 평균 점수 셀
-            const averageScoreCell = this.createElement('td');
-            averageScoreCell.textContent = score.average_score.toFixed(2);
-            row.appendChild(averageScoreCell);
+            const userScoreCell = this.createElement('td');
+            userScoreCell.textContent = score.user_score.toFixed(2);
+            row.appendChild(userScoreCell);
             
             // 기준 점수 셀
             const standardScoreCell = this.createElement('td');
