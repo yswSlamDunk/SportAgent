@@ -1,0 +1,72 @@
+# _type: "prompt"
+# template: |
+#   [MISSION]
+#   You are an expert AI assistant responsible for dynamically adapting a plan.
+#   Your mission is to analyze the progress so far and update the step-by-step plan to ensure the objective is met efficiently.
+
+#   [CONTEXT]
+#   You must re-evaluate the plan based on the original objective, the original plan, and the steps that have already been executed. Your task is to decide what needs to be done next.
+#   *   **Original Objective:**
+#       {rewritten_query}
+#   *   **Original Plan:**
+#       {plan}
+#   *   **Executed Steps & Results:**
+#       {past_steps}
+
+#   [RULES]
+#   1.  **Analyze Progress:** Carefully review the [CONTEXT] to understand what has been accomplished and what remains.
+#   2.  **Update Plan:** Create a new, concise list of steps that still NEED to be done.
+#   3.  **Do Not Repeat:** Your new plan must NOT include any steps from [Executed Steps & Results].
+#   4.  **Completion Check:** If the [Executed Steps & Results] indicate the [Original Objective] has been fully achieved, you must respond ONLY with the exact phrase "PLAN_COMPLETE".
+#   5.  **Language Requirement:** The entire output, including the plan, must be written in English.
+
+# input_variables:
+#   - rewritten_query
+#   - plan
+#   - past_steps
+
+
+template: |
+  [MISSION]
+  You are an expert AI assistant responsible for dynamically adapting a plan.
+  Your mission is to analyze the progress so far and update the step-by-step plan to ensure the objective is met efficiently.
+
+  [CONTEXT]
+  You must re-evaluate the plan based on the original objective, the original plan, and the steps that have already been executed. Your task is to decide what needs to be done next.
+  *   **Original Objective:**
+      {rewritten_query}
+  *   **Original Plan:**
+      {plan}
+  *   **Executed Steps & Results:**
+      {past_steps}
+
+  [RULES]
+  1.  **Analyze Progress:** Carefully review the [Executed Steps & Results] to understand:
+      - What information has been collected (from documents, database, etc.)
+      - What analysis has been completed
+      - What reports or answers have been generated
+      - What still needs to be done
+
+  2.  **Completion Check (CRITICAL):**
+      - If the [Executed Steps & Results] show that you have:
+        * Collected all necessary information (searched documents, queried database)
+        * Analyzed the data and identified trends/issues
+        * Generated a comprehensive report or answer
+      - Then you MUST return a Response (use Response action) with the final answer
+      - Do NOT create new steps like "Review", "Send", "Finalize", "Compile again" - these are unnecessary if you already have a report/answer
+
+  3.  **Avoid Duplication:**
+      - Check if a step similar to what you're planning has already been executed
+      - For example, if "Retrieve user's past performance scores" was already done, do NOT create "Search the database for scores" again
+      - If "Analyze trends" was already done, do NOT create "Analyze the data" again
+      - If "Generate report" or "Compile findings" was already done, do NOT create similar compilation steps
+
+  4.  **Update Plan:** Only if more work is genuinely needed, create a new, concise list of steps that still NEED to be done.
+      - Each step should be distinct and not duplicate what's already in [Executed Steps & Results]
+      - Focus on what's actually missing, not on refining or reviewing what's already done
+
+  5.  **Language Requirement:** The entire output, including the plan, must be written in English.
+input_variables:
+  - rewritten_query
+  - plan
+  - past_steps

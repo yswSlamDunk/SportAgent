@@ -1,0 +1,371 @@
+from utils import load_prompt, get_all_score_history_sync
+from datetime import datetime
+import json
+import re
+
+from typing import Annotated, Literal, List, Any
+from typing_extensions import TypedDict
+from pydantic import BaseModel, Field
+from operator import add
+
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import AIMessage
+from langchain_core.output_parsers import PydanticOutputParser
+from langchain_core.runnables import RunnableConfig, RunnableLambda
+
+from langgraph.types import interrupt
+from langgraph.graph import StateGraph, START, END
+
+from pathlib import Path
+
+import sys
+sys.path.append(str(Path.cwd().parent / 'backend' / 'app' / 'database'))
+# sys.path.append(str(Path.cwd() / 'backend' / 'app' / 'database'))
+# 
+# 
+# 
+from connection import db
+
+class SqlState(TypedDict):
+    origin_query: Annotated[str, "origin user query"]
+    
+    rewritten_query: Annotated[List[str], add]
+    errors: Annotated[List[AIMessage], add]
+    sql: Annotated[List[str], add]
+    
+    selected_data: List[Any]
+    final_answer: str
+
+    cancelled: bool
+    error_num: int
+    direction: str
+
+    only_data: bool
+
+schema = load_prompt('../prompt/text2sql/schema.yaml')
+rewriteSql_template = load_prompt('../prompt/text2sql/rewriteSql.yaml')
+queryGeneration_template = load_prompt('../prompt/text2sql/queryGeneration.yaml')
+finalAnswer_template = load_prompt('../prompt/text2sql/finalAnswer.yaml')
+
+# schema = load_prompt(str(Path.cwd() / 'prompt' / 'text2sql' / 'schema.yaml'))
+# rewriteSql_template = load_prompt(str(Path.cwd() / 'prompt' / 'text2sql' / 'rewriteSql.yaml'))
+# queryGeneration_template = load_prompt(str(Path.cwd() / 'prompt' / 'text2sql' / 'queryGeneration.yaml'))
+# finalAnswer_template = load_prompt(str(Path.cwd() / 'prompt' / 'text2sql' / 'finalAnswer.yaml'))
+
+# Node 1. Synonym(동의어 처리)
+def synonum_process(state: SqlState):
+    origin_query = state['origin_query'].lower()
+    synonym_map = {
+        "snatch": "용상",
+        "snatch lift": "용상",
+        "스내치": "용상",
+        "스네치": "용상",
+        "스냇치": "용상",
+
+        "clean and jerk": "인상",
+        "clean&jerk": "인상",
+        "clean & jerk": "인상",
+        "clean n jerk": "인상",
+        "클린 앤드 저크": "인상",
+        "클린 엔드 저크": "인상",
+        "클린 앤 저크": "인상",
+        "클린 엔 저크": "인상",
+        "클린엔저크": "인상",
+        "클린앤저크": "인상",
+        "클린엔드저크": "인상",
+        "클린앤드저크": "인상"
+        }
+
+    rewritten_query = origin_query
+
+    # 동의어 매칭 및 변환
+    for synonym, standard in synonym_map.items():
+        if synonym in rewritten_query:
+            rewritten_query = rewritten_query.replace(synonym, standard)
+    
+    return {"rewritten_query": [rewritten_query]}
+
+# Node 2. Query Rewrite(SQL 재작성)
+class QueryRewriteSQL(BaseModel):
+    """ Schema for the rewritten user query to enhance downstream DB querying. """
+    rewritten_query: str = Field(
+        ...,
+        description="A string that rewrites the natural language query into a DB-friendly format."
+    )
+
+queryRewrite_parser = PydanticOutputParser(pydantic_object=QueryRewriteSQL)
+system_prompt = schema['template'] + '\n' + rewriteSql_template['template']
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system", system_prompt)],
+    template_format="f-string"
+)
+prompt = prompt.partial(format=queryRewrite_parser.get_format_instructions())
+rewrite_sql_chain = prompt | ChatOpenAI(model="gpt-4o-mini", temperature=0)
+
+def query_rewrite_sql(state: SqlState) -> dict[str, list[AIMessage]]:
+    """
+    This stage transforms the input message to fit the database schema before converting it to SQL.
+    """
+    input_query = state['rewritten_query'][-1]
+    rewritten_query = rewrite_sql_chain.invoke({"user_query": input_query, 
+                                                "current_datetime": datetime.now().strftime('%Y-%m-%d')})
+    rewritten_query = queryRewrite_parser.parse(rewritten_query.content).rewritten_query
+    
+    
+    
+    return {
+        "rewritten_query": [rewritten_query]
+    }
+
+# Node 3. Query Generation(SQL 생성)
+system_prompt = schema['template'] + '\n' + queryGeneration_template['template']
+query_gen_prompt = ChatPromptTemplate.from_messages(
+    [("system", system_prompt), 
+     ("placeholder", "{errors}"), 
+     ("user", "user_id: {user_id}\nuser_question: {user_question}")]
+)
+
+query_gen = query_gen_prompt | ChatOpenAI(
+    model="gpt-4o-mini", temperature=0
+)
+
+def query_gen_node(state: SqlState, config: RunnableConfig):
+    configurable = config.get("configurable", {})
+    user_id = configurable.get("user_id")   
+    errors = state['errors']
+    message = query_gen.invoke({"errors": errors,
+                                "user_id": user_id,
+                                "user_question": state["rewritten_query"][-1]})    
+    
+    return {"sql": [message.content]}
+
+# Node 4. Validate Generated SQL(SQL 검증)
+def validate_generated_sql(state: SqlState, config: RunnableConfig):
+    """
+    Validate SQL generated by the Text-to-SQL system.
+
+    Checks:
+    1. Query must be SELECT-only.
+    2. If 'pose_evaluation_sessions' is referenced, query MUST contain 
+       a WHERE clause filtering by pose_evaluation_sessions.user_id = {user_id}
+       or via its alias (e.g., ses.user_id = {user_id}).
+    """  
+    sql = state['sql'][-1]
+    configurable = config.get("configurable", {})
+    user_id = str(configurable.get("user_id"))
+    error_num = state['error_num']
+    errors = []
+    normalized_sql = sql.lower().replace("\n", " ")
+    normalized_sql = re.sub(r'\s+', ' ', normalized_sql.strip().lower())
+
+    # --- Rule 1: Only SELECT allowed ---
+    if not normalized_sql.startswith("select"):
+        actual_start = normalized_sql[:10]
+        errors.append(AIMessage(content=f"Query must start with SELECT. Query begins with: '{actual_start}'."))
+
+    forbidden = ["insert", "update", "delete", "drop", "truncate", "alter"]
+    if any(word in normalized_sql for word in forbidden):
+        errors.append(AIMessage(content="DML/DDL statements are not allowed."))
+    
+    # --- Rule 2: alias-aware user filter enforcement ---
+    using_pose_sessions = "pose_evaluation_sessions" in normalized_sql
+
+    if using_pose_sessions:
+        # 1) alias 추출: "pose_evaluation_sessions as ses" 또는 "pose_evaluation_sessions ses"
+        alias_pattern = r"pose_evaluation_sessions\s+(as\s+)?(\w+)"
+        alias_match = re.search(alias_pattern, normalized_sql)
+
+        aliases_to_check = []
+
+        if alias_match:
+            alias = alias_match.group(2)
+            aliases_to_check.append(alias)
+
+        # 풀네임도 검사
+        aliases_to_check.append("pose_evaluation_sessions")
+
+        # 2) 각 alias에 대해 user_id 필터 여부 검사
+        filter_found = False
+        for alias in aliases_to_check:
+            pattern = rf"{alias}\.user_id\s*=\s*{user_id}"
+            if re.search(pattern, normalized_sql):
+                filter_found = True
+                break
+
+        if not filter_found:
+            errors.append(AIMessage(content=f"Missing required security filter: pose_evaluation_sessions.user_id = {user_id} "
+                f"(alias allowed: e.g., ses.user_id = {user_id})."))
+
+        # WHERE 절 존재 여부
+        if " where " not in normalized_sql:
+            errors.append(AIMessage(content="Query uses pose_evaluation_sessions but has no WHERE clause."))
+    
+    if errors != []:
+        error_num += 1
+        
+        for i, err in enumerate(errors, 1):                   
+            if error_num >= 3:
+                return {"direction": 'human_in_the_loop', "error_num": error_num}
+        
+        # errors는 이미 List[AIMessage]이므로 그대로 반환
+        return {"direction": "query_generate",
+                "errors": errors,
+                "error_num": error_num}
+
+    return {"direction": "execute_query"}
+
+
+def should_continue_check(state: SqlState) -> Literal["query_generate", "execute_query", "human_in_the_loop"]:
+    """
+    validation_check 노드에서 나온 결과를 기반으로 다음 노드를 결정.
+    """    
+    return state.get("direction", "query_generate")
+
+# Node 5. Execute Query(SQL 실행)
+def execute_query_node(state: SqlState):
+    query = state['sql'][-1]   
+    result = db.execute_query(query, structured = True)
+    
+    if not result['success']:
+        message = f"Error: {result['error']}"
+        error_num = state['error_num'] + 1
+    
+        if (error_num >= 3):
+            return {"error_num": error_num,
+                    "errors": [AIMessage(content=message)],
+                    "direction": "human_in_the_loop"}
+        
+        return {"direction": "query_generate",
+                "error_num": error_num,
+                "errors": [AIMessage(content=message)]}
+
+    elif (result['success'] == True) and (result['data'] == []):
+        return {"direction": "human_in_the_loop"}
+    
+    else:
+        data_str = json.dumps(result['data'], default=str, ensure_ascii=False)
+        
+        if state['only_data'] == True:
+            return {"selected_data": [data_str],
+                    "final_answer": data_str,
+                    "direction": END}
+        
+        return {"selected_data": [data_str],
+                "direction": "final_answer"}
+
+def should_continue_execute(state: SqlState) -> Literal["query_generate", "final_answer", "human_in_the_loop", END]:
+    return state['direction']
+
+# Node 6. Final Answer(답변 생성)
+final_answer_prompt = ChatPromptTemplate.from_messages(
+    [("system", finalAnswer_template['template']),
+     ("placeholder", "{query_result}"),
+     ("user", "user_id: {user_id}\nuser_question: {user_question}")]
+)
+
+final_gen = final_answer_prompt | ChatOpenAI(model="gpt-4o-mini", temperature=0)
+
+def final_answer_node(state: SqlState, config: RunnableConfig):
+    configurable = config.get("configurable", {})
+    user_id = configurable.get("user_id")
+    
+    answer = final_gen.invoke({"query_result": state['selected_data'],
+                               "user_id": user_id,
+                               "user_question": state["rewritten_query"][-1]})
+    return {'final_answer': answer.content}
+
+
+# Node 7. Human-in-the-loop(사용자 개입)
+def human_in_the_loop(state: SqlState, config: RunnableConfig):
+    """Human-in-the-loop 노드: 사용자 개입이 필요한 경우 호출됩니다."""
+    configurable = config.get("configurable", {})
+    user_id = configurable.get("user_id")
+    score_history = get_all_score_history_sync(user_id)
+    serialized_data = json.loads(json.dumps(score_history, default=str))
+    user_response = interrupt({
+        "rewritten_query": state["rewritten_query"][-1],
+        "user_data": serialized_data
+    })
+
+    if user_response.get('cancelled') == True:
+        cancel_message = "User cancelled the entire process."
+        return {
+            "cancelled": True,
+            "final_answer": cancel_message,
+            "direction": END
+        }
+    if user_response.get('selected_data') != []:
+        if state['only_data'] == True:
+            return {
+                "selected_data": user_response.get("selected_data"), # 나중에 list, json을 string으로 변환 유무를 확인해야 함.
+                "final_answer": user_response.get("selected_data"),
+                "direction": END
+            }
+        return {
+            "selected_data": user_response.get("selected_data"),
+            "direction": "final_answer"
+        }
+    if user_response.get('user_input') != '':
+        user_input = user_response["user_input"]
+        return {
+            "rewritten_query": [user_input],
+            "direction": "query_generate"
+        }
+
+def should_continue_hitl(state: SqlState) -> Literal["query_generate", "final_answer", END]:
+    return state["direction"]  
+
+# Workflow
+def text2sql_workflow(checkpointer=None):
+    workflow = StateGraph(SqlState)
+
+    workflow.add_node("synonum_process", synonum_process)
+    workflow.add_node("sql_query_rewrite", query_rewrite_sql)
+    workflow.add_node("query_generate", query_gen_node)
+    workflow.add_node("validate_generated_sql", validate_generated_sql)
+    workflow.add_node("execute_query", execute_query_node)
+    workflow.add_node('human_in_the_loop', human_in_the_loop)
+    workflow.add_node("final_answer", final_answer_node)
+
+    workflow.add_edge(START, "synonum_process")
+    workflow.add_edge("synonum_process", "sql_query_rewrite")
+    workflow.add_edge("sql_query_rewrite", "query_generate")
+    workflow.add_edge("query_generate", "validate_generated_sql")
+
+    workflow.add_conditional_edges(
+        "validate_generated_sql",
+        should_continue_check,
+        {
+            "query_generate": "query_generate",
+            "execute_query": "execute_query",
+            "human_in_the_loop": "human_in_the_loop"
+        }
+    )
+
+    workflow.add_conditional_edges(
+        "execute_query",
+        should_continue_execute,
+        {
+            "final_answer": "final_answer",
+            "query_generate": "query_generate",
+            "human_in_the_loop": "human_in_the_loop",
+            END: END
+        }
+    )
+
+    workflow.add_conditional_edges(
+        "human_in_the_loop",
+        should_continue_hitl,
+        {
+            "final_answer": "final_answer",
+            "query_generate": "query_generate",
+            END: END
+        }
+    )
+
+    workflow.add_edge("final_answer", END)
+
+    app = workflow.compile(checkpointer=checkpointer)
+    return app

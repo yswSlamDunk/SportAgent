@@ -1,0 +1,51 @@
+_type: "prompt"
+template: |
+  [Notice]
+  This is the schema of all available tables in the database.
+  Please proceed with your task based on the schema below.
+
+  [Schema]
+  {{
+  "tables": {{
+      "pose_scores": {{
+          "columns": {{
+              "id": "int, primary key, auto increment",
+              "session_id": "int, foreign key → pose_evaluation_sessions.id",
+              "connection_index": "varchar(100), not null, example: '11-12'",
+              "user_score": "decimal(10,4), not null",
+              "status": "enum('achieved','warning','below_standard'), default 'achieved'"
+          }}
+      }},
+      "sport_standard_scores": {{
+          "columns": {{
+              "id": "int, primary key, auto increment",
+              "video_id": "int, foreign key → videos.id",
+              "connection_index": "varchar(100), not null, example: '11-12'",
+              "connection_name": "varchar(100), not null, example: '왼쪽엉덩이-오른쪽엉덩이'",
+              "standard_score": "decimal(5,2), not null"
+          }}
+      }},
+      "pose_evaluation_sessions": {{
+          "columns": {{
+              "id": "int, primary key, auto increment",
+              "user_id": "int, foreign key → users.id",
+              "sport_id": "int, foreign key → sports.id",
+              "user_video_id": "int, foreign key → videos.id",
+              "standard_video_id": "int, foreign key → videos.id",
+              "created_at": "timestamp, default CURRENT_TIMESTAMP"
+          }}
+      }},
+      "sports": {{
+          "columns": {{
+              "id": "int, primary key, auto increment",
+              "name": "enum('인상', '용상')"
+          }}
+      }}
+  }},
+  "relationships": [
+      {{"from": "pose_scores.session_id", "to": "pose_evaluation_sessions.id"}},
+      {{"from": "pose_evaluation_sessions.sport_id", "to": "sports.id"}},
+      {{"from": "sport_standard_scores.video_id", "to": "videos.id"}}
+      ]
+  }}
+input_variables:
